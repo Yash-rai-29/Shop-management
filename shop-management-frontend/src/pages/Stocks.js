@@ -27,7 +27,7 @@ const Stocks = () => {
         if (!user || !user.token) {
           throw new Error("User not authenticated");
         }
-        const res = await axios.get(`http://localhost:5000/api/stocks?shop=${shop}`);
+        const res = await axios.get(`https://shop-management-im3g.onrender.com/api/stocks?shop=${shop}`);
         const fetchedStocks = res.data.map((stock) => ({
           ...stock,
           lastQuantity: stock.quantity,
@@ -60,7 +60,7 @@ const Stocks = () => {
 
           const lastQuantity = stock.quantity;
           const res = await axios.put(
-            `http://localhost:5000/api/stocks/${stock._id}`,
+            `https://shop-management-im3g.onrender.com/api/stocks/${stock._id}`,
             { quantity: newQuantity }
           );
           totalSales += (lastQuantity - newQuantity) * stock.price;
@@ -147,7 +147,7 @@ const Stocks = () => {
       formData.append('file', pdfBlob, `invoice_${new Date().toISOString()}.pdf`);
 
       await axios.post(
-        "http://localhost:5000/api/invoices",
+        "https://shop-management-im3g.onrender.com/api/invoices",
         formData,
         {
           headers: {

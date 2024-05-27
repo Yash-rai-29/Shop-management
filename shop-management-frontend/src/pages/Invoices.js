@@ -27,7 +27,7 @@ const Invoices = () => {
       }
 
       try {
-        const res = await axios.get('http://localhost:5000/api/invoices');
+        const res = await axios.get('https://shop-management-im3g.onrender.com/api/invoices');
         setInvoices(res.data);
         setSelectedMonth(getCurrentMonth());
         setFilteredInvoices(res.data.filter(invoice => {
@@ -51,7 +51,7 @@ const Invoices = () => {
     }
 
     try {
-      const res = await axios.get(`http://localhost:5000/api/invoices/${id}`);
+      const res = await axios.get(`https://shop-management-im3g.onrender.com/api/invoices/${id}`);
 
       const blob = new Blob([res.data], { type: 'application/pdf' });
       const link = document.createElement('a');

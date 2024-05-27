@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const API_URL = 'http://localhost:5000/api/auth';
+const API_URL = 'https://shop-management-im3g.onrender.com/api/auth';
 
 const setAuthToken = (token) => {
     if (token) {
