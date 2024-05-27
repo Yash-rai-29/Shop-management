@@ -211,7 +211,7 @@ const Stocks = () => {
                     <td className="py-2 px-4 border">{stock.product}</td>
                     <td className="py-2 px-4 border">{stock.size}</td>
                     <td className="py-2 px-4 border">{stock.quantity}</td>
-                    <td className="py-2 px-4 border">{stock.price}</td>
+                    <td className="py-2 px-4 border"> ₹{stock.price}</td>
                     <td className="py-2 px-4 border">
                       <input
                         type="number"

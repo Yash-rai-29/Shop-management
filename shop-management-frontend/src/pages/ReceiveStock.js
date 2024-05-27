@@ -139,7 +139,7 @@ const ReceiveStock = () => {
                   <td className="py-3 px-5 border-b">{stock.product}</td>
                   <td className="py-3 px-5 border-b">{stock.size}</td>
                   <td className="py-3 px-5 border-b">{stock.quantity}</td>
-                  <td className="py-3 px-5 border-b">${stock.price}</td>
+                  <td className="py-3 px-5 border-b"> ₹{stock.price}</td>
                   <td className="py-3 px-5 border-b">
                     <input
                       type="number"
