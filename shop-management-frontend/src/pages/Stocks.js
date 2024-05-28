@@ -111,8 +111,8 @@ const Stocks = () => {
         [
           "Product",
           "Size",
-          "Last Quantity",
-          "Updated Quantity",
+          "Open Stock",
+          "Closing Stock",
           "Quantity Sold",
           "Price",
           "Total Sale (₹)",
@@ -200,9 +200,10 @@ const Stocks = () => {
                 <tr className="bg-gray-200">
                   <th className="py-2 px-4 border">Product</th>
                   <th className="py-2 px-4 border">Size</th>
-                  <th className="py-2 px-4 border">Quantity</th>
+                  <th className="py-2 px-4 border">Open Stocks</th>
                   <th className="py-2 px-4 border">Price</th>
-                  <th className="py-2 px-4 border">New Quantity</th>
+                  <th className="py-2 px-4 border">Close Stocks</th>
+                  <th className="py-2 px-4 border">Calculated Price (₹)</th>
                 </tr>
               </thead>
               <tbody>
@@ -224,6 +225,9 @@ const Stocks = () => {
                           })
                         }
                       />
+                    </td>
+                    <td className="py-2 px-4 border">
+                      ₹{((stock.quantity - (newQuantities[stock._id] || stock.quantity)) * stock.price).toFixed(2)}
                     </td>
                   </tr>
                 ))}
