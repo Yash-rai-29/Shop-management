@@ -15,10 +15,10 @@ const NavBar = () => {
         <nav className="bg-blue-500 p-4">
             <ul className="flex space-x-4">
                 <li><Link to="/" className="text-white">Home</Link></li>
-                <li><Link to="/transfer-stock" className="text-white">Transfer Stock</Link></li>
-                <li><Link to="/receive-stock" className="text-white">Receive Stock</Link></li> {/* New link */}
                 {user && user.user && (
                     <>
+                        <li><Link to="/transfer-stock" className="text-white">Transfer Stock</Link></li>
+                        <li><Link to="/receive-stock" className="text-white">Receive Stock</Link></li>
                         <li><Link to="/invoices" className="text-white">Invoices</Link></li>
                         <li><Link to="/stocks" className="text-white">Stocks</Link></li>
                     </>
