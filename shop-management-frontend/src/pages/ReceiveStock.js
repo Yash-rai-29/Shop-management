@@ -24,7 +24,7 @@ const ReceiveStock = () => {
       if (!user || !user.token) {
         throw new Error("User not authenticated");
       }
-      const res = await axios.get(`https://shop-management-im3g.onrender.com/api/stocks?shop=${shop}`);
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/stocks?shop=${shop}`);
       setStocks(res.data);
     } catch (error) {
       setError("Error fetching stocks");
@@ -43,7 +43,7 @@ const ReceiveStock = () => {
     }
 
     try {
-      const res = await axios.post("https://shop-management-im3g.onrender.com/api/stocks", {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL}/stocks`, {
         ...newStock,
         shop,
       });
@@ -66,7 +66,7 @@ const ReceiveStock = () => {
 
   const onDeleteStock = async (id) => {
     try {
-      await axios.delete(`https://shop-management-im3g.onrender.com/api/stocks/${id}`);
+      await axios.delete(`${process.env.REACT_APP_API_URL}/stocks/${id}`);
       setStocks(stocks.filter((stock) => stock._id !== id));
       setError("");
     } catch (error) {
@@ -79,7 +79,7 @@ const ReceiveStock = () => {
     try {
       await Promise.all(
         Object.keys(updatedQuantities).map((id) =>
-          axios.put(`https://shop-management-im3g.onrender.com/api/stocks/${id}`, {
+          axios.put(`${process.env.REACT_APP_API_URL}/stocks/${id}`, {
             quantity: updatedQuantities[id],
           })
         )

@@ -27,7 +27,7 @@ const Stocks = () => {
         if (!user || !user.token) {
           throw new Error("User not authenticated");
         }
-        const res = await axios.get(`https://shop-management-im3g.onrender.com/api/stocks?shop=${shop}`);
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/stocks?shop=${shop}`);
         const fetchedStocks = res.data.map((stock) => ({
           ...stock,
           lastQuantity: stock.quantity,
@@ -60,7 +60,7 @@ const Stocks = () => {
 
           const lastQuantity = stock.quantity;
           const res = await axios.put(
-            `https://shop-management-im3g.onrender.com/api/stocks/${stock._id}`,
+            `${process.env.REACT_APP_API_URL}/stocks/${stock._id}`,
             { quantity: newQuantity }
           );
           totalSales += (lastQuantity - newQuantity) * stock.price;

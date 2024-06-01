@@ -7,6 +7,7 @@ import Invoices from "./pages/Invoices";
 import Stocks from "./pages/Stocks";
 import TransferStock from "./pages/TransferStock";
 import ReceiveStock from "./pages/ReceiveStock";
+import Records from "./pages/Records";
 import { AuthContext, AuthProvider } from "./context/AuthContext";
 import Layout from "./components/Layout";
 
@@ -18,7 +19,6 @@ const PrivateRoute = ({ element: Component }) => {
     return isAuthenticated ? <Component /> : <Navigate to="/login" />;
 };
 
-
 const App = () => {
     return (
         <AuthProvider>
@@ -29,6 +29,7 @@ const App = () => {
                         <Route path="/stocks" element={<PrivateRoute element={Stocks} />} />
                         <Route path="/transfer-stock" element={<PrivateRoute element={TransferStock} />} />
                         <Route path="/receive-stock" element={<PrivateRoute element={ReceiveStock} />} />
+                        <Route path="/records" element={<PrivateRoute element={Records} />} />
                     </Route>
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />

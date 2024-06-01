@@ -20,8 +20,8 @@ const TransferStock = () => {
         throw new Error("User not authenticated");
       }
       const [fromRes, toRes] = await Promise.all([
-        axios.get(`https://shop-management-im3g.onrender.com/api/stocks?shop=${fromShop}`),
-        axios.get(`https://shop-management-im3g.onrender.com/api/stocks?shop=${toShop}`)
+        axios.get(`${process.env.REACT_APP_API_URL}/stocks?shop=${fromShop}`),
+        axios.get(`${process.env.REACT_APP_API_URL}/stocks?shop=${toShop}`)
       ]);
       setStocks({
         [fromShop]: fromRes.data,
