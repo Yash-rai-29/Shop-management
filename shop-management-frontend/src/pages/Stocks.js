@@ -16,6 +16,8 @@ const Stocks = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [totalDesiSale, setTotalDesiSale] = useState(0);
+  const [totalBeerSale, setTotalBeerSale] = useState(0);
   const { user, loading: userLoading } = useContext(AuthContext);
 
   useEffect(() => {
@@ -50,6 +52,8 @@ const Stocks = () => {
 
   const onUpdateStocks = async () => {
     let totalSales = 0;
+    let desiSales = 0;
+    let beerSales = 0;
     setLoading(true);
 
     try {
@@ -63,13 +67,24 @@ const Stocks = () => {
             `${process.env.REACT_APP_API_URL}/stocks/${stock._id}`,
             { quantity: newQuantity }
           );
-          totalSales += (lastQuantity - newQuantity) * stock.price;
+          const soldQuantity = lastQuantity - newQuantity;
+          const saleAmount = soldQuantity * stock.price;
+          totalSales += saleAmount;
+
+          if (stock.product.toLowerCase().includes("desi")) {
+            desiSales += saleAmount;
+          } else {
+            beerSales += saleAmount;
+          }
+
           return { ...res.data, lastQuantity };
         })
       );
       setStocks(updatedStocks);
       setTotalSale(totalSales);
-      await generateInvoice(updatedStocks, totalSales, upiPayment, discount);
+      setTotalDesiSale(desiSales);
+      setTotalBeerSale(beerSales);
+      await generateInvoice(updatedStocks, totalSales, upiPayment, discount, desiSales, beerSales);
       setError("");
     } catch (error) {
       setError("Error updating stocks");
@@ -80,7 +95,7 @@ const Stocks = () => {
     }
   };
 
-  const generateInvoice = async (stocks, totalSale, upiPayment, discount) => {
+  const generateInvoice = async (stocks, totalSale, upiPayment, discount, desiSales, beerSales) => {
     const doc = new jsPDF();
     const currentDate = new Date().toLocaleString();
     const totalPaymentReceived = totalSale - discount - upiPayment;
@@ -139,6 +154,8 @@ const Stocks = () => {
       14,
       finalY + 30
     );
+    doc.text(`Total Desi Sale: ₹${desiSales.toFixed(2)}`, 14, finalY + 40);
+    doc.text(`Total Beer Sale: ₹${beerSales.toFixed(2)}`, 14, finalY + 50);
 
     const pdfBlob = doc.output("blob");
 
@@ -275,11 +292,17 @@ const Stocks = () => {
             <div className="text-lg font-semibold text-green-600">Summary</div>
             <div className="mt-2">UPI Amount: ₹{upiPayment.toFixed(2)}</div>
             <div className="mt-2">Discount Amount: ₹{discount.toFixed(2)}</div>
+            <div className="mt-2 text-green-500">
+              Total Desi Sale: ₹{totalDesiSale.toFixed(2)}
+            </div>
+            <div className="mt-2 text-green-500">
+              Total Beer Sale: ₹{totalBeerSale.toFixed(2)}
+            </div>
             <div className="mt-4 text-green-500">
               Total Sale: ₹{totalSale.toFixed(2)}
             </div>
             <div className="mt-2">
-              Remaining Amount: ₹{(totalSale - upiPayment - discount).toFixed(2)}
+              Cash Amount: ₹{(totalSale - upiPayment - discount).toFixed(2)}
             </div>
           </div>
         )}

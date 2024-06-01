@@ -6,14 +6,15 @@ const Record = require('../models/Record');
 // @desc    Add a new record
 // @access  Private
 router.post('/', async (req, res) => {
-    const { recordName, shopName, message, amount } = req.body;
+    const { recordName, shopName, message, amount, month } = req.body;
 
     try {
         const newRecord = new Record({
             recordName,
             shopName,
             message,
-            amount
+            amount,
+            month
         });
 
         const record = await newRecord.save();
@@ -34,10 +35,7 @@ router.get('/', async (req, res) => {
     try {
         let query = {};
         if (month) {
-            const [year, monthNum] = month.split('-');
-            const startDate = new Date(year, monthNum - 1, 1);
-            const endDate = new Date(year, monthNum, 1);
-            query.date = { $gte: startDate, $lt: endDate };
+            query.month = month;
         }
 
         const records = await Record.find(query).sort({ amount: sort });
