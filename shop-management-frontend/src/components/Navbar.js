@@ -22,6 +22,9 @@ const NavBar = () => {
                         <li><Link to="/invoices" className="text-white">Invoices</Link></li>
                         <li><Link to="/stocks" className="text-white">Stocks</Link></li>
                         <li><Link to="/records" className="text-white">Records</Link></li>
+                        <li>
+                <Link to="/bill-history" className="text-white">Bill History</Link>
+              </li>
                     </>
                 )}
                 {user ? (

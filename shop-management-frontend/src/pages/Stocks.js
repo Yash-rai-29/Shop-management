@@ -55,13 +55,13 @@ const Stocks = () => {
     let desiSales = 0;
     let beerSales = 0;
     setLoading(true);
-
+  
     try {
       const updatedStocks = await Promise.all(
         stocks.map(async (stock) => {
           const newQuantity = Number(newQuantities[stock._id]);
           if (isNaN(newQuantity)) return stock;
-
+  
           const lastQuantity = stock.quantity;
           const res = await axios.put(
             `${process.env.REACT_APP_API_URL}/stocks/${stock._id}`,
@@ -70,13 +70,13 @@ const Stocks = () => {
           const soldQuantity = lastQuantity - newQuantity;
           const saleAmount = soldQuantity * stock.price;
           totalSales += saleAmount;
-
+  
           if (stock.product.toLowerCase().includes("desi")) {
             desiSales += saleAmount;
           } else {
             beerSales += saleAmount;
           }
-
+  
           return { ...res.data, lastQuantity };
         })
       );
@@ -84,7 +84,20 @@ const Stocks = () => {
       setTotalSale(totalSales);
       setTotalDesiSale(desiSales);
       setTotalBeerSale(beerSales);
+      
       await generateInvoice(updatedStocks, totalSales, upiPayment, discount, desiSales, beerSales);
+  
+      // Send data to backend to store in bill history
+      await axios.post(`${process.env.REACT_APP_API_URL}/billHistory`, {
+        updatedStocks,
+        totalSales,
+        upiPayment,
+        discount,
+        desiSales,
+        beerSales,
+        shop,
+      });
+  
       setError("");
     } catch (error) {
       setError("Error updating stocks");

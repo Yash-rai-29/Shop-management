@@ -80,7 +80,7 @@ const ReceiveStock = () => {
       await Promise.all(
         Object.keys(updatedQuantities).map((id) =>
           axios.put(`${process.env.REACT_APP_API_URL}/stocks/${id}`, {
-            quantity: updatedQuantities[id],
+            quantity: updatedQuantities[id] + stocks.find((stock) => stock._id === id).quantity,
           })
         )
       );
@@ -143,9 +143,10 @@ const ReceiveStock = () => {
                   <td className="py-3 px-5 border-b">
                     <input
                       type="number"
-                      value={updatedQuantities[stock._id] || stock.quantity}
+                      value={updatedQuantities[stock._id] || ""}
                       onChange={(e) => handleQuantityChange(stock._id, Number(e.target.value))}
-                      className="border p-2 w-full rounded"
+                      className="border p-2 w-full rounded no-arrows"
+                      min="0"
                     />
                   </td>
                   <td className="py-3 px-5 border-b">
@@ -197,6 +198,7 @@ const ReceiveStock = () => {
               onChange={(e) => setNewStock({ ...newStock, quantity: Number(e.target.value) })}
               className="border p-2 w-full rounded"
               placeholder="Enter quantity"
+              min="0"
             />
           </div>
           <div className="mb-4">
@@ -207,6 +209,7 @@ const ReceiveStock = () => {
               onChange={(e) => setNewStock({ ...newStock, price: Number(e.target.value) })}
               className="border p-2 w-full rounded"
               placeholder="Enter price"
+              min="0"
             />
           </div>
           <button

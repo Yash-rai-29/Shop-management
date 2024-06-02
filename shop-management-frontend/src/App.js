@@ -10,6 +10,7 @@ import ReceiveStock from "./pages/ReceiveStock";
 import Records from "./pages/Records";
 import { AuthContext, AuthProvider } from "./context/AuthContext";
 import Layout from "./components/Layout";
+import BillHistory from "./pages/BillHistory";
 
 const PrivateRoute = ({ element: Component }) => {
     const { isAuthenticated, loading } = useContext(AuthContext);
@@ -30,6 +31,7 @@ const App = () => {
                         <Route path="/transfer-stock" element={<PrivateRoute element={TransferStock} />} />
                         <Route path="/receive-stock" element={<PrivateRoute element={ReceiveStock} />} />
                         <Route path="/records" element={<PrivateRoute element={Records} />} />
+                        <Route path="/bill-history" element={<PrivateRoute element={BillHistory} />} />
                     </Route>
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />

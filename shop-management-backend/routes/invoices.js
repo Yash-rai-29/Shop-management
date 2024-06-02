@@ -27,7 +27,7 @@ const upload = multer({
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
       }
-  
+      console.log('invocie')
       try {
         const invoice = new Invoice({ data: req.file.buffer });
         await invoice.save();
