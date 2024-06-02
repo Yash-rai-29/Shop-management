@@ -50,54 +50,67 @@ const Stocks = () => {
     fetchStocks();
   }, [user, userLoading, shop]);
 
+  useEffect(() => {
+    const calculateTotals = () => {
+      let totalSales = 0;
+      let desiSales = 0;
+      let beerSales = 0;
+
+      stocks.forEach((stock) => {
+        const newQuantity = Number(newQuantities[stock._id]);
+        if (isNaN(newQuantity)) return;
+
+        const soldQuantity = stock.lastQuantity - newQuantity;
+        const saleAmount = soldQuantity * stock.price;
+        totalSales += saleAmount;
+
+        if (stock.product.toLowerCase().includes("desi")) {
+          desiSales += saleAmount;
+        } else {
+          beerSales += saleAmount;
+        }
+      });
+
+      setTotalSale(totalSales);
+      setTotalDesiSale(desiSales);
+      setTotalBeerSale(beerSales);
+    };
+
+    calculateTotals();
+  }, [newQuantities, stocks]);
+
   const onUpdateStocks = async () => {
-    let totalSales = 0;
-    let desiSales = 0;
-    let beerSales = 0;
     setLoading(true);
-  
+
     try {
       const updatedStocks = await Promise.all(
         stocks.map(async (stock) => {
           const newQuantity = Number(newQuantities[stock._id]);
           if (isNaN(newQuantity)) return stock;
-  
-          const lastQuantity = stock.quantity;
+
           const res = await axios.put(
             `${process.env.REACT_APP_API_URL}/stocks/${stock._id}`,
             { quantity: newQuantity }
           );
-          const soldQuantity = lastQuantity - newQuantity;
-          const saleAmount = soldQuantity * stock.price;
-          totalSales += saleAmount;
-  
-          if (stock.product.toLowerCase().includes("desi")) {
-            desiSales += saleAmount;
-          } else {
-            beerSales += saleAmount;
-          }
-  
-          return { ...res.data, lastQuantity };
+
+          return { ...res.data, lastQuantity: stock.lastQuantity };
         })
       );
       setStocks(updatedStocks);
-      setTotalSale(totalSales);
-      setTotalDesiSale(desiSales);
-      setTotalBeerSale(beerSales);
-      
-      await generateInvoice(updatedStocks, totalSales, upiPayment, discount, desiSales, beerSales);
-  
+
+      await generateInvoice(updatedStocks);
+
       // Send data to backend to store in bill history
       await axios.post(`${process.env.REACT_APP_API_URL}/billHistory`, {
         updatedStocks,
-        totalSales,
+        totalSale,
         upiPayment,
         discount,
-        desiSales,
-        beerSales,
+        totalDesiSale,
+        totalBeerSale,
         shop,
       });
-  
+
       setError("");
     } catch (error) {
       setError("Error updating stocks");
@@ -108,7 +121,7 @@ const Stocks = () => {
     }
   };
 
-  const generateInvoice = async (stocks, totalSale, upiPayment, discount, desiSales, beerSales) => {
+  const generateInvoice = async (stocks) => {
     const doc = new jsPDF();
     const currentDate = new Date().toLocaleString();
     const totalPaymentReceived = totalSale - discount - upiPayment;
@@ -167,8 +180,8 @@ const Stocks = () => {
       14,
       finalY + 30
     );
-    doc.text(`Total Desi Sale: ₹${desiSales.toFixed(2)}`, 14, finalY + 40);
-    doc.text(`Total Beer Sale: ₹${beerSales.toFixed(2)}`, 14, finalY + 50);
+    doc.text(`Total Desi Sale: ₹${totalDesiSale.toFixed(2)}`, 14, finalY + 40);
+    doc.text(`Total Beer Sale: ₹${totalBeerSale.toFixed(2)}`, 14, finalY + 50);
 
     const pdfBlob = doc.output("blob");
 
@@ -241,8 +254,8 @@ const Stocks = () => {
                   <tr key={stock._id} className="hover:bg-gray-100">
                     <td className="py-2 px-4 border">{stock.product}</td>
                     <td className="py-2 px-4 border">{stock.size}ml</td>
-                    <td className="py-2 px-4 border">{stock.quantity}</td>
-                    <td className="py-2 px-4 border"> ₹{stock.price}</td>
+                    <td className="py-2 px-4 border">{stock.lastQuantity}</td>
+                    <td className="py-2 px-4 border">₹{stock.price}</td>
                     <td className="py-2 px-4 border">
                       <input
                         type="number"
@@ -257,7 +270,7 @@ const Stocks = () => {
                       />
                     </td>
                     <td className="py-2 px-4 border">
-                      ₹{((stock.quantity - (newQuantities[stock._id] || stock.quantity)) * stock.price).toFixed(2)}
+                      ₹{((stock.lastQuantity - (newQuantities[stock._id] || stock.lastQuantity)) * stock.price).toFixed(2)}
                     </td>
                   </tr>
                 ))}
