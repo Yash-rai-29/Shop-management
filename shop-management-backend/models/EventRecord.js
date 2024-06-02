@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const EventRecordSchema = new mongoose.Schema({
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    user: { type: String, ref: 'User', required: true },
     detail: { type: String, required: true },
     timestamp: { type: Date, default: Date.now },
     eventCategory: { type: String, required: true },

@@ -9,7 +9,11 @@ const logEvent = async (user, detail, eventCategory, route, additionalInfo = {})
         additionalInfo: JSON.stringify(additionalInfo)
     });
 
-    await eventRecord.save();
+    try {
+        await eventRecord.save();
+    } catch (err) {
+        console.error('Error saving event log:', err);
+    }
 };
 
 module.exports = logEvent;
