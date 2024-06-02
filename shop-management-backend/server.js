@@ -13,7 +13,6 @@ app.use(express.json());
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/invoices', require('./routes/invoices'));
 app.use('/api/stocks', require('./routes/stocks'));
-app.use('/api/payments', require('./routes/payment'));
 app.use('/api/records', require('./routes/records'));
 app.use('/api/eventRecords', require('./routes/eventRecords'));
 app.use('/api/billHistory', require('./routes/billHistory'));
