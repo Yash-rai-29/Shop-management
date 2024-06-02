@@ -10,7 +10,6 @@ const Stocks = () => {
   const [stocks, setStocks] = useState([]);
   const [totalSale, setTotalSale] = useState(0);
   const [newQuantities, setNewQuantities] = useState({});
-  const [receivedStocks, setReceivedStocks] = useState({});
   const [upiPayment, setUpiPayment] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [shop, setShop] = useState("Vamanpui");
@@ -40,7 +39,6 @@ const Stocks = () => {
         setUpiPayment(0);
         setDiscount(0);
         setNewQuantities({});
-        setReceivedStocks({});
       } catch (error) {
         setError("Error fetching stocks");
         console.error(error);
@@ -59,12 +57,10 @@ const Stocks = () => {
       let beerSales = 0;
 
       stocks.forEach((stock) => {
-        const newQuantity = Number(newQuantities[stock._id]);
-        const receivedQuantity = Number(receivedStocks[stock._id]);
-        if (isNaN(newQuantity) || isNaN(receivedQuantity)) return;
+        const newQuantity = newQuantities[stock._id] !== undefined ? Number(newQuantities[stock._id]) : stock.lastQuantity;
+        if (isNaN(newQuantity)) return;
 
-        const totalStock = stock.lastQuantity + receivedQuantity;
-        const soldQuantity = totalStock - newQuantity;
+        const soldQuantity = stock.lastQuantity - newQuantity;
         const saleAmount = soldQuantity * stock.price;
         totalSales += saleAmount;
 
@@ -81,7 +77,7 @@ const Stocks = () => {
     };
 
     calculateTotals();
-  }, [newQuantities, receivedStocks, stocks]);
+  }, [newQuantities, stocks]);
 
   const onUpdateStocks = async () => {
     setLoading(true);
@@ -89,13 +85,12 @@ const Stocks = () => {
     try {
       const updatedStocks = await Promise.all(
         stocks.map(async (stock) => {
-          const newQuantity = Number(newQuantities[stock._id]);
-          const receivedQuantity = Number(receivedStocks[stock._id]);
-          if (isNaN(newQuantity) || isNaN(receivedQuantity)) return stock;
+          const newQuantity = newQuantities[stock._id] !== undefined ? Number(newQuantities[stock._id]) : stock.lastQuantity;
+          if (isNaN(newQuantity)) return stock;
 
           const res = await axios.put(
             `${process.env.REACT_APP_API_URL}/stocks/${stock._id}`,
-            { quantity: newQuantity, received: receivedQuantity }
+            { quantity: newQuantity }
           );
 
           return { ...res.data, lastQuantity: stock.lastQuantity };
@@ -158,32 +153,21 @@ const Stocks = () => {
           "Product",
           "Size",
           "Open Stock",
-          "Received Stock",
-          "Total Stock",
           "Closing Stock",
           "Quantity Sold",
           "Price",
           "Total Sale (₹)",
         ],
       ],
-      body: stocks.map((stock) => {
-        const receivedQuantity = Number(receivedStocks[stock._id]) || 0;
-        const totalStock = stock.lastQuantity + receivedQuantity;
-        const soldQuantity = totalStock - (Number(newQuantities[stock._id]) || stock.lastQuantity);
-        const saleAmount = soldQuantity * stock.price;
-
-        return [
-          stock.product,
-          `${stock.size}ml`,
-          stock.lastQuantity,
-          receivedQuantity,
-          totalStock,
-          newQuantities[stock._id] || stock.lastQuantity,
-          soldQuantity,
-          `₹${stock.price}`,
-          `₹${saleAmount.toFixed(2)}`,
-        ];
-      }),
+      body: stocks.map((stock) => [
+        stock.product,
+        stock.size,
+        stock.lastQuantity,
+        stock.quantity,
+        stock.lastQuantity - stock.quantity,
+        stock.price,
+        ((stock.lastQuantity - stock.quantity) * stock.price).toFixed(2),
+      ]),
     });
 
     const finalY = doc.lastAutoTable.finalY + 10;
@@ -196,8 +180,8 @@ const Stocks = () => {
       14,
       finalY + 30
     );
-    doc.text(`Total Desi Sale: ₹${totalDesiSale.toFixed(2)}`, 14, finalY + 40);
-    doc.text(`Total Beer Sale: ₹${totalBeerSale.toFixed(2)}`, 14, finalY + 50);
+    doc.text(`Total Desi Sale: ₹{totalDesiSale.toFixed(2)}`, 14, finalY + 40);
+    doc.text(`Total Beer Sale: ₹{totalBeerSale.toFixed(2)}`, 14, finalY + 50);
 
     const pdfBlob = doc.output("blob");
 
@@ -259,11 +243,9 @@ const Stocks = () => {
                 <tr className="bg-gray-200">
                   <th className="py-2 px-4 border">Product</th>
                   <th className="py-2 px-4 border">Size</th>
-                  <th className="py-2 px-4 border">Open Stock</th>
+                  <th className="py-2 px-4 border">Open Stocks</th>
                   <th className="py-2 px-4 border">Price</th>
-                  <th className="py-2 px-4 border">Received Stock</th>
-                  <th className="py-2 px-4 border">Total Stock</th>
-                  <th className="py-2 px-4 border">Close Stock</th>
+                  <th className="py-2 px-4 border">Close Stocks</th>
                   <th className="py-2 px-4 border">Calculated Price (₹)</th>
                 </tr>
               </thead>
@@ -273,45 +255,22 @@ const Stocks = () => {
                     <td className="py-2 px-4 border">{stock.product}</td>
                     <td className="py-2 px-4 border">{stock.size}ml</td>
                     <td className="py-2 px-4 border">{stock.lastQuantity}</td>
-                    <td className="py-2 px-4 border">{stock.price}</td>
-                    <td className="py-2 px-4 border">
-                      <input
-                        type="number"
-                        placeholder="Received Stock"
-                        className="border p-2 rounded w-full"
-                        onChange={(e) => {
-                          const value = Number(e.target.value);
-                          setReceivedStocks({
-                            ...receivedStocks,
-                            [stock._id]: value,
-                          });
-                        }}
-                      />
-                    </td>
-                    <td className="py-2 px-4 border">
-                      {stock.lastQuantity + (Number(receivedStocks[stock._id]) || 0)}
-                    </td>
+                    <td className="py-2 px-4 border">₹{stock.price}</td>
                     <td className="py-2 px-4 border">
                       <input
                         type="number"
                         placeholder="New Quantity"
                         className="border p-2 rounded w-full"
-                        onChange={(e) => {
-                          const value = Number(e.target.value);
-                          if (value > stock.lastQuantity + (Number(receivedStocks[stock._id]) || 0)) {
-                            alert("Close stock quantity cannot be greater than total stock quantity");
-                            e.target.value = stock.lastQuantity + (Number(receivedStocks[stock._id]) || 0);
-                          } else {
-                            setNewQuantities({
-                              ...newQuantities,
-                              [stock._id]: value,
-                            });
-                          }
-                        }}
+                        onChange={(e) =>
+                          setNewQuantities({
+                            ...newQuantities,
+                            [stock._id]: e.target.value || stock.lastQuantity,
+                          })
+                        }
                       />
                     </td>
                     <td className="py-2 px-4 border">
-                      ₹{((stock.lastQuantity + (Number(receivedStocks[stock._id]) || 0) - (newQuantities[stock._id] !== undefined && newQuantities[stock._id] !== null ? newQuantities[stock._id] : stock.lastQuantity)) * stock.price).toFixed(2)}
+                      ₹{((stock.lastQuantity - (newQuantities[stock._id] || stock.lastQuantity)) * stock.price).toFixed(2)}
                     </td>
                   </tr>
                 ))}
