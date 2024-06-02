@@ -261,12 +261,18 @@ const Stocks = () => {
                         type="number"
                         placeholder="New Quantity"
                         className="border p-2 rounded w-full"
-                        onChange={(e) =>
-                          setNewQuantities({
-                            ...newQuantities,
-                            [stock._id]: e.target.value,
-                          })
-                        }
+                        onChange={(e) => {
+                          const value = Number(e.target.value);
+                          if (value > stock.lastQuantity) {
+                            alert("Close stock quantity cannot be greater than open stock quantity");
+                            e.target.value = stock.lastQuantity;
+                          } else {
+                            setNewQuantities({
+                              ...newQuantities,
+                              [stock._id]: value,
+                            });
+                          }
+                        }}
                       />
                     </td>
                     <td className="py-2 px-4 border">
