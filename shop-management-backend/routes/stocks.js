@@ -2,7 +2,7 @@ const express = require('express');
 const auth = require('../middleware/auth');
 const Stock = require('../models/Stock');
 const router = express.Router();
-const logEvent = require('../middleware/logEvent');
+const logEvent = require('../middleware/LogEvent');
 
 // Get all stock items
 router.get('/', auth(['admin', 'employee']), async (req, res) => {

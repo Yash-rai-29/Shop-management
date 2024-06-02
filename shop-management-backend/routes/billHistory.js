@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const BillHistory = require('../models/BillHistory');
 const auth = require('../middleware/auth');  // Import authentication middleware
-const logEvent = require('../middleware/logEvent');
+const logEvent = require('../middleware/LogEvent');
 
 // Create a new bill history record
 router.post('/', auth(['admin']), async (req, res) => {  // Apply authentication middleware

@@ -1,7 +1,7 @@
 const express = require('express');
 const auth = require('../middleware/auth');
 const Payment = require('../models/Payment');
-const logEvent = require('../middleware/logEvent');
+const logEvent = require('../middleware/LogEvent');
 const router = express.Router();
 
 // Create a new payment
