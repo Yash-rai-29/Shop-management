@@ -227,7 +227,7 @@ const Stocks = () => {
                 {stocks.map((stock) => (
                   <tr key={stock._id} className="hover:bg-gray-100">
                     <td className="py-2 px-4 border">{stock.product}</td>
-                    <td className="py-2 px-4 border">{stock.size}</td>
+                    <td className="py-2 px-4 border">{stock.size}ml</td>
                     <td className="py-2 px-4 border">{stock.quantity}</td>
                     <td className="py-2 px-4 border"> ₹{stock.price}</td>
                     <td className="py-2 px-4 border">

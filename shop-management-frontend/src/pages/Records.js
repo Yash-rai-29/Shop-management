@@ -180,7 +180,7 @@ const Records = () => {
                                 <h2 className="text-xl font-bold">{record.recordName}</h2>
                                 <p>Shop: {record.shopName}</p>
                                 <p>Message: {record.message}</p>
-                                <p>Amount: ${record.amount}</p>
+                                <p>Amount: ₹{record.amount}</p>
                                 <p>Date: {new Date(record.date).toLocaleDateString()}</p>
                                 <p>Month: {record.month}</p>
                             </div>

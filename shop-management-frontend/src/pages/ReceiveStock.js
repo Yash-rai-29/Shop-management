@@ -37,7 +37,7 @@ const ReceiveStock = () => {
   }, [user, userLoading, shop]);
 
   const onAddStock = async () => {
-    if (!newStock.product || !newStock.size || newStock.quantity <= 0 || newStock.price <= 0) {
+    if (!newStock.product || !newStock.size || newStock.quantity < 0 || newStock.price <= 0) {
       setError("Please fill out all fields with valid values.");
       return;
     }
@@ -137,7 +137,7 @@ const ReceiveStock = () => {
               {stocks.map((stock) => (
                 <tr key={stock._id} className="hover:bg-gray-100">
                   <td className="py-3 px-5 border-b">{stock.product}</td>
-                  <td className="py-3 px-5 border-b">{stock.size}</td>
+                  <td className="py-3 px-5 border-b">{stock.size}ml</td>
                   <td className="py-3 px-5 border-b">{stock.quantity}</td>
                   <td className="py-3 px-5 border-b"> ₹{stock.price}</td>
                   <td className="py-3 px-5 border-b">
