@@ -45,6 +45,10 @@ const BillHistory = () => {
     setMonth(e.target.value);
   };
 
+  const formatCurrency = (amount) => {
+    return typeof amount === 'number' ? `₹${amount.toFixed(2)}` : 'N/A';
+  };
+
   return (
     <div className="p-6 bg-gray-100 min-h-screen text-gray-900">
       <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-lg p-6">
@@ -80,11 +84,11 @@ const BillHistory = () => {
                 {billHistory.map((bill) => (
                   <tr key={bill._id} className="hover:bg-gray-100">
                     <td className="py-2 px-4 border">{new Date(bill.date).toLocaleDateString()}</td>
-                    <td className="py-2 px-4 border">₹{bill.totalSales.toFixed(2)}</td>
-                    <td className="py-2 px-4 border">₹{bill.upiPayment.toFixed(2)}</td>
-                    <td className="py-2 px-4 border">₹{bill.discount.toFixed(2)}</td>
-                    <td className="py-2 px-4 border">₹{bill.desiSales.toFixed(2)}</td>
-                    <td className="py-2 px-4 border">₹{bill.beerSales.toFixed(2)}</td>
+                    <td className="py-2 px-4 border">{formatCurrency(bill.totalSales)}</td>
+                    <td className="py-2 px-4 border">{formatCurrency(bill.upiPayment)}</td>
+                    <td className="py-2 px-4 border">{formatCurrency(bill.discount)}</td>
+                    <td className="py-2 px-4 border">{formatCurrency(bill.desiSales)}</td>
+                    <td className="py-2 px-4 border">{formatCurrency(bill.beerSales)}</td>
                     <td className="py-2 px-4 border">{bill.shop}</td>
                   </tr>
                 ))}
