@@ -87,11 +87,11 @@ const BillHistory = () => {
                 {billHistory.map((bill) => (
                   <tr key={bill._id} className="hover:bg-gray-100">
                     <td className="py-2 px-4 border">{new Date(bill.pdfDate).toLocaleDateString()}</td>
-                    <td className="py-2 px-4 border">{formatCurrency(bill.totalSales)}</td>
+                    <td className="py-2 px-4 border">{formatCurrency(bill.totalSale)}</td>
                     <td className="py-2 px-4 border">{formatCurrency(bill.upiPayment)}</td>
                     <td className="py-2 px-4 border">{formatCurrency(bill.discount)}</td>
-                    <td className="py-2 px-4 border">{formatCurrency(bill.desiSales)}</td>
-                    <td className="py-2 px-4 border">{formatCurrency(bill.beerSales)}</td>
+                    <td className="py-2 px-4 border">{formatCurrency(bill.totalDesiSale)}</td>
+                    <td className="py-2 px-4 border">{formatCurrency(bill.totalBeerSale)}</td>
                     <td className="py-2 px-4 border">{formatCurrency(bill.breakageCash)}</td>
                     <td className="py-2 px-4 border">{formatCurrency(bill.canteenCash)}</td>
                     <td className="py-2 px-4 border">{formatCurrency(bill.salary)}</td>

@@ -42,7 +42,6 @@ const Records = () => {
                 amount,
                 month
             });
-            console.log(response.data);
             alert('Record added successfully');
             fetchRecords();
             setRecordName('');
