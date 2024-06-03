@@ -118,8 +118,8 @@ const Stocks = () => {
         totalSale,
         upiPayment,
         discount,
-         breakageCash,
-          canteenCash,
+        breakageCash,
+        canteenCash,
         totalDesiSale,
         totalBeerSale, 
         salary,
@@ -138,21 +138,21 @@ const Stocks = () => {
   const generateInvoice = async (stocks) => {
     const doc = new jsPDF();
     const invoiceDate = new Date(pdfDate).toLocaleString(); // Properly format invoice date
-
+  
     const now = new Date(); // Create a new Date object
     const datePart = now.toISOString().split("T")[0].replace(/-/g, ""); // Generate date part
-
+  
     const totalPaymentReceived = totalSale + canteenCash - breakageCash - discount - salary - upiPayment;
-
+  
     const invoiceNumber = `Inv-${datePart}`; // Dynamic invoice number
-
+  
     // Add the Roboto font
     doc.addFileToVFS('Roboto-Regular.ttf', robotoRegularBase64);
     doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
-
+  
     // Use the Roboto font
     doc.setFont('Roboto');
-
+  
     doc.setFontSize(16);
     doc.text("Om Ganeshay Namah", doc.internal.pageSize.getWidth() / 2, 10, {
       align: "center",
@@ -164,7 +164,7 @@ const Stocks = () => {
     doc.setFontSize(12);
     doc.text(`Invoice Number: ${invoiceNumber}`, 14, 30);
     doc.text(`Date: ${invoiceDate}`, 14, 40);
-
+  
     autoTable(doc, {
       startY: 50,
       head: [
@@ -187,27 +187,46 @@ const Stocks = () => {
         stock.price,
         ((stock.lastQuantity - stock.quantity) * stock.price).toFixed(2),
       ]),
+      didDrawPage: (data) => {
+        const pageHeight = doc.internal.pageSize.height;
+        const finalY = data.cursor.y;
+        const margin = 10;
+  
+        if (finalY + margin > pageHeight) {
+          doc.addPage();
+        }
+      }
     });
-
+  
     const finalY = doc.lastAutoTable.finalY + 10;
-
-    doc.setFontSize(10);
-    doc.text(`Total Payment: ₹${totalSale.toFixed(2)}`, 14, finalY);
-    doc.text(`Total Discount: ₹${discount.toFixed(2)}`, 14, finalY + 10);
-    doc.text(`Total Salary: ₹${salary.toFixed(2)}`, 14, finalY + 20);
-    doc.text(`Total UPI Payment: ₹${upiPayment.toFixed(2)}`, 14, finalY + 30);
-    doc.text(`Canteen Cash: ₹${canteenCash.toFixed(2)}`, 14, finalY + 40);
-    doc.text(`Breakage Cash: ₹${breakageCash.toFixed(2)}`, 14, finalY + 50);
-    doc.text(`Total Cash: ₹${totalPaymentReceived.toFixed(2)}`, 14, finalY + 60);
-    doc.text(`Total Desi Sale: ₹${totalDesiSale.toFixed(2)}`, 14, finalY + 70);
-    doc.text(`Total Beer Sale: ₹${totalBeerSale.toFixed(2)}`, 14, finalY + 80);
-
+  
+    const addTextWithNewPage = (text, y) => {
+      const pageHeight = doc.internal.pageSize.height;
+      if (y > pageHeight - 10) {
+        doc.addPage();
+        y = 10; // Reset y position for the new page
+      }
+      doc.text(text, 14, y);
+      return y + 10; // Increment y position for the next line
+    };
+  
+    let yPosition = finalY;
+    yPosition = addTextWithNewPage(`Total Payment: ₹${totalSale.toFixed(2)}`, yPosition);
+    yPosition = addTextWithNewPage(`Total Discount: ₹${discount.toFixed(2)}`, yPosition);
+    yPosition = addTextWithNewPage(`Total Salary: ₹${salary.toFixed(2)}`, yPosition);
+    yPosition = addTextWithNewPage(`Total UPI Payment: ₹${upiPayment.toFixed(2)}`, yPosition);
+    yPosition = addTextWithNewPage(`Canteen Cash: ₹${canteenCash.toFixed(2)}`, yPosition);
+    yPosition = addTextWithNewPage(`Breakage Cash: ₹${breakageCash.toFixed(2)}`, yPosition);
+    yPosition = addTextWithNewPage(`Total Cash: ₹${totalPaymentReceived.toFixed(2)}`, yPosition);
+    yPosition = addTextWithNewPage(`Total Desi Sale: ₹${totalDesiSale.toFixed(2)}`, yPosition);
+    yPosition = addTextWithNewPage(`Total Beer Sale: ₹${totalBeerSale.toFixed(2)}`, yPosition);
+  
     const pdfBlob = doc.output("blob");
-
+  
     try {
       const formData = new FormData();
       formData.append('file', pdfBlob, `invoice_${new Date().toISOString()}.pdf`);
-
+  
       await axios.post(
         "https://shop-management-im3g.onrender.com/api/invoices",
         formData,
@@ -221,9 +240,10 @@ const Stocks = () => {
       setError("Error saving invoice");
       console.error(error);
     }
-
+  
     doc.save(`Invoice-${invoiceDate}.pdf`); // Save with dynamic invoice number
   };
+  
 
 
   const openModal = () => {
