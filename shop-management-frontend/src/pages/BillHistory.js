@@ -51,7 +51,7 @@ const BillHistory = () => {
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen text-gray-900">
-      <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-lg p-6">
+      <div className="max-w-7xl mx-auto bg-white shadow-lg rounded-lg p-6">
         <h2 className="text-3xl mb-6 text-center font-semibold">Bill History</h2>
         {error && <div className="text-red-500 mb-4">{error}</div>}
         <div className="mb-4">
