@@ -14,6 +14,8 @@ const Stocks = () => {
   const [discount, setDiscount] = useState(0);
   const [canteenCash, setCanteenCash] = useState(0);
   const [breakageCash, setBreakageCash] = useState(0);
+  const [rateDiff, setRateDiff] = useState(0);
+  const [rent, setRent] = useState(0);
   const [salary, setSalary] = useState(0);
   const [shop, setShop] = useState("Vamanpui");
   const [loading, setLoading] = useState(false);
@@ -46,6 +48,8 @@ const Stocks = () => {
         setCanteenCash(0);
         setBreakageCash(0);
         setSalary(0);
+        setRent(0);
+        setRateDiff(0);
         setNewQuantities({});
       } catch (error) {
         setError("Error fetching stocks");
@@ -95,7 +99,10 @@ const Stocks = () => {
     setLoading(true);
 
     try {
+
       const updatedStocks = await Promise.all(
+
+        
         stocks.map(async (stock) => {
           const newQuantity = newQuantities[stock._id] !== undefined ? Number(newQuantities[stock._id]) : stock.lastQuantity;
           if (isNaN(newQuantity)) return stock;
@@ -112,6 +119,7 @@ const Stocks = () => {
 
       await generateInvoice(updatedStocks);
       // Send data to backend to store in bill history
+      const totalPaymentReceived = totalSale + canteenCash - breakageCash - discount - salary - upiPayment - rent + rateDiff;
       await axios.post(`${process.env.REACT_APP_API_URL}/billHistory`, {
         updatedStocks,
         pdfDate,
@@ -123,7 +131,11 @@ const Stocks = () => {
         totalDesiSale,
         totalBeerSale, 
         salary,
+        rateDiff,
+        rent,
         shop,
+        totalPaymentReceived
+
       });
 
       setError("");
@@ -142,7 +154,7 @@ const Stocks = () => {
     const now = new Date(); // Create a new Date object
     const datePart = now.toISOString().split("T")[0].replace(/-/g, ""); // Generate date part
   
-    const totalPaymentReceived = totalSale + canteenCash - breakageCash - discount - salary - upiPayment;
+    const totalPaymentReceived = totalSale + canteenCash - breakageCash - discount - salary - upiPayment-rent+rateDiff;
   
     const invoiceNumber = `Inv-${datePart}`; // Dynamic invoice number
   
@@ -217,6 +229,8 @@ const Stocks = () => {
     yPosition = addTextWithNewPage(`Total UPI Payment: ₹${upiPayment.toFixed(2)}`, yPosition);
     yPosition = addTextWithNewPage(`Canteen Cash: ₹${canteenCash.toFixed(2)}`, yPosition);
     yPosition = addTextWithNewPage(`Breakage Cash: ₹${breakageCash.toFixed(2)}`, yPosition);
+    yPosition = addTextWithNewPage(`Rate Diff : ₹${rateDiff.toFixed(2)}`, yPosition);
+    yPosition = addTextWithNewPage(`Rent : ₹${rent.toFixed(2)}`, yPosition);
     yPosition = addTextWithNewPage(`Total Cash: ₹${totalPaymentReceived.toFixed(2)}`, yPosition);
     yPosition = addTextWithNewPage(`Total Desi Sale: ₹${totalDesiSale.toFixed(2)}`, yPosition);
     yPosition = addTextWithNewPage(`Total Beer Sale: ₹${totalBeerSale.toFixed(2)}`, yPosition);
@@ -352,11 +366,13 @@ const Stocks = () => {
                 <div className="bg-gray-200 p-4 rounded shadow w-1/2 mr-4">
                   <p className="font-semibold">Total Sale: ₹{totalSale.toFixed(2)}</p>
                   <p className="font-semibold">UPI Payment: <span className="text-red-500">₹{upiPayment.toFixed(2)}</span></p>
-                  <p className="font-semibold">Discount: <span className="text-red-500">₹{discount.toFixed(2)}</span></p>
+                  <p className="font-semibold">Miscellaneous Expense: <span className="text-red-500">₹{discount.toFixed(2)}</span></p>
                   <p className="font-semibold">Canteen Cash: <span className="text-green-500">₹{canteenCash.toFixed(2)}</span></p>
+                  <p className="font-semibold">Rate Diff Cash: <span className="text-green-500">₹{rateDiff.toFixed(2)}</span></p>
                   <p className="font-semibold">Breakage Cash: <span className="text-red-500">₹{breakageCash.toFixed(2)}</span></p>
+                  <p className="font-semibold">Rent: <span className="text-red-500">₹{rent.toFixed(2)}</span></p>
                   <p className="font-semibold">Salary: <span className="text-red-500">₹{salary.toFixed(2)}</span></p>
-                  <p className="font-semibold">Total Cash : ₹{(totalSale + canteenCash - breakageCash - discount - salary - upiPayment).toFixed(2)}</p>
+                  <p className="font-semibold">Total Cash : ₹{(totalSale + canteenCash - breakageCash - discount - salary - upiPayment-rent+rateDiff).toFixed(2)}</p>
                 <p className="font-semibold"> Total Desi Sale: ₹{totalDesiSale.toFixed(2)}</p>
                 <p className="font-semibold"> Total Beer Sale: ₹{totalBeerSale.toFixed(2)}</p>
                 
@@ -398,6 +414,20 @@ const Stocks = () => {
                     type="number"
                     value={breakageCash}
                     onChange={(e) => setBreakageCash(Number(e.target.value))}
+                    className="border p-2 w-full rounded"
+                  />
+                    <label className="block mb-2 mt-2">Rate Diffrence (₹):</label>
+                  <input
+                    type="number"
+                    value={rateDiff}
+                    onChange={(e) => setRateDiff(Number(e.target.value))}
+                    className="border p-2 w-full rounded"
+                  />
+                    <label className="block mb-2 mt-2">Rent (₹):</label>
+                  <input
+                    type="number"
+                    value={rent}
+                    onChange={(e) => setRent(Number(e.target.value))}
                     className="border p-2 w-full rounded"
                   />
                 </div>
