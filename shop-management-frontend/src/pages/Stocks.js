@@ -35,7 +35,6 @@ const Stocks = () => {
           throw new Error("User not authenticated");
         }
         const res = await axios.get(`${process.env.REACT_APP_API_URL}/stocks?shop=${shop}`);
-        console.log("Stocks fetched:", res.data);
         const fetchedStocks = res.data.map((stock) => ({
           ...stock,
           lastQuantity: stock.quantity,

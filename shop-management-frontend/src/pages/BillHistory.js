@@ -27,7 +27,6 @@ const BillHistory = () => {
 
         const res = await axios.get(`${process.env.REACT_APP_API_URL}/billHistory`, {
           params: { month },
-          headers: { Authorization: `Bearer ${user.token}` },
         });
         setBillHistory(res.data);
         setError('');
