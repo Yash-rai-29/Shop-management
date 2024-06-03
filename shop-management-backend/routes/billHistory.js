@@ -6,7 +6,7 @@ const logEvent = require('../middleware/LogEvent');
 
 // Create a new bill history record
 router.post('/', auth(['admin']), async (req, res) => {
-  const { updatedStocks, pdfDate, totalSale, upiPayment, discount, breakageCash, canteenCash, totalDesiSale, totalBeerSale, salary, shop } = req.body;
+  const { updatedStocks, pdfDate, totalSale, upiPayment, discount, breakageCash, canteenCash, totalDesiSale, totalBeerSale, salary, shop ,rent,rateDiff,totalPaymentReceived} = req.body;
   
   try {
     const newBillHistory = new BillHistory({
@@ -19,6 +19,9 @@ router.post('/', auth(['admin']), async (req, res) => {
       canteenCash,
       totalDesiSale,
       totalBeerSale,
+      rent,
+      rateDiff,
+      totalPaymentReceived, 
       salary,
       shop,
     });

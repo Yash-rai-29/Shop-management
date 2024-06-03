@@ -21,6 +21,9 @@ const BillHistorySchema = new mongoose.Schema({
   totalBeerSale: Number,
   salary: Number,
   shop: String,
+  rateDiff: Number,
+  rent: Number,
+  totalPaymentReceived: Number,
   date: { type: Date, default: Date.now },
 });
 
