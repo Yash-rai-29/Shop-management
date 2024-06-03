@@ -80,6 +80,9 @@ const BillHistory = () => {
                   <th className="py-2 px-4 border">Breakage Cash</th>
                   <th className="py-2 px-4 border">Canteen Cash</th>
                   <th className="py-2 px-4 border">Salary</th>
+                  <th className="py-2 px-4 border">Rate Diff</th>
+                  <th className="py-2 px-4 border">Rent</th>
+                  <th className="py-2 px-4 border">Total Cash</th>
                   <th className="py-2 px-4 border">Shop</th>
                 </tr>
               </thead>
@@ -95,6 +98,9 @@ const BillHistory = () => {
                     <td className="py-2 px-4 border">{formatCurrency(bill.breakageCash)}</td>
                     <td className="py-2 px-4 border">{formatCurrency(bill.canteenCash)}</td>
                     <td className="py-2 px-4 border">{formatCurrency(bill.salary)}</td>
+                    <td className="py-2 px-4 border">{formatCurrency(bill.rateDiff)}</td>
+                    <td className="py-2 px-4 border">{formatCurrency(bill.rent)}</td>
+                    <td className="py-2 px-4 border">{formatCurrency(bill.totalPaymentReceived)}</td>
                     <td className="py-2 px-4 border">{bill.shop}</td>
                   </tr>
                 ))}
