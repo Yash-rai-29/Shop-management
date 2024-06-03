@@ -12,14 +12,19 @@ const Stocks = () => {
   const [newQuantities, setNewQuantities] = useState({});
   const [upiPayment, setUpiPayment] = useState(0);
   const [discount, setDiscount] = useState(0);
+  const [canteenCash, setCanteenCash] = useState(0);
+  const [breakageCash, setBreakageCash] = useState(0);
+  const [salary, setSalary] = useState(0);
   const [shop, setShop] = useState("Vamanpui");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [summaryModalIsOpen, setSummaryModalIsOpen] = useState(false);
   const [totalDesiSale, setTotalDesiSale] = useState(0);
   const [totalBeerSale, setTotalBeerSale] = useState(0);
   const { user, loading: userLoading } = useContext(AuthContext);
-
+  const [pdfDate, setPdfDate] = useState(new Date().toISOString().substring(0, 10));
+  
   useEffect(() => {
     const fetchStocks = async () => {
       if (userLoading) return;
@@ -30,6 +35,7 @@ const Stocks = () => {
           throw new Error("User not authenticated");
         }
         const res = await axios.get(`${process.env.REACT_APP_API_URL}/stocks?shop=${shop}`);
+        console.log("Stocks fetched:", res.data);
         const fetchedStocks = res.data.map((stock) => ({
           ...stock,
           lastQuantity: stock.quantity,
@@ -38,6 +44,9 @@ const Stocks = () => {
         setTotalSale(0);
         setUpiPayment(0);
         setDiscount(0);
+        setCanteenCash(0);
+        setBreakageCash(0);
+        setSalary(0);
         setNewQuantities({});
       } catch (error) {
         setError("Error fetching stocks");
@@ -79,6 +88,11 @@ const Stocks = () => {
     calculateTotals();
   }, [newQuantities, stocks]);
 
+  const onConfirmUpdate = () => {
+    setSummaryModalIsOpen(true);
+    setModalIsOpen(false);
+  };
+
   const onUpdateStocks = async () => {
     setLoading(true);
 
@@ -93,7 +107,7 @@ const Stocks = () => {
             { quantity: newQuantity }
           );
 
-          return { ...res.data, lastQuantity: stock.lastQuantity };
+          return { ...res.data, lastQuantity: stock.lastQuantity, soldQuantity: stock.lastQuantity - newQuantity };
         })
       );
       setStocks(updatedStocks);
@@ -106,8 +120,11 @@ const Stocks = () => {
         totalSale,
         upiPayment,
         discount,
+         breakageCash,
+          canteenCash,
         totalDesiSale,
-        totalBeerSale,
+        totalBeerSale, 
+       
         shop,
       });
 
@@ -117,15 +134,19 @@ const Stocks = () => {
       console.error(error);
     } finally {
       setLoading(false);
-      setModalIsOpen(false); // Close the modal after updating
+      setSummaryModalIsOpen(false); // Close the modal after updating
     }
   };
-
   const generateInvoice = async (stocks) => {
     const doc = new jsPDF();
-    const currentDate = new Date().toLocaleString();
-    const totalPaymentReceived = totalSale - discount - upiPayment;
-    const invoiceNumber = `INV-${Date.now()}`; // Dynamic invoice number
+    const invoiceDate = new Date(pdfDate).toLocaleString(); // Properly format invoice date
+
+    const now = new Date(); // Create a new Date object
+    const datePart = now.toISOString().split("T")[0].replace(/-/g, ""); // Generate date part
+
+    const totalPaymentReceived = totalSale + canteenCash - breakageCash - discount - salary - upiPayment;
+
+    const invoiceNumber = `Inv-${datePart}`; // Dynamic invoice number
 
     // Add the Roboto font
     doc.addFileToVFS('Roboto-Regular.ttf', robotoRegularBase64);
@@ -144,7 +165,7 @@ const Stocks = () => {
     });
     doc.setFontSize(12);
     doc.text(`Invoice Number: ${invoiceNumber}`, 14, 30);
-    doc.text(`Date: ${currentDate}`, 14, 40);
+    doc.text(`Date: ${invoiceDate}`, 14, 40);
 
     autoTable(doc, {
       startY: 50,
@@ -171,17 +192,17 @@ const Stocks = () => {
     });
 
     const finalY = doc.lastAutoTable.finalY + 10;
+
     doc.setFontSize(10);
     doc.text(`Total Payment: ₹${totalSale.toFixed(2)}`, 14, finalY);
     doc.text(`Total Discount: ₹${discount.toFixed(2)}`, 14, finalY + 10);
-    doc.text(`Total UPI Payment: ₹${upiPayment.toFixed(2)}`, 14, finalY + 20);
-    doc.text(
-      `Total Sale: ₹${totalPaymentReceived.toFixed(2)}`,
-      14,
-      finalY + 30
-    );
-    doc.text(`Total Desi Sale: ₹{totalDesiSale.toFixed(2)}`, 14, finalY + 40);
-    doc.text(`Total Beer Sale: ₹{totalBeerSale.toFixed(2)}`, 14, finalY + 50);
+    doc.text(`Total Salary: ₹${salary.toFixed(2)}`, 14, finalY + 20);
+    doc.text(`Total UPI Payment: ₹${upiPayment.toFixed(2)}`, 14, finalY + 30);
+    doc.text(`Canteen Cash: ₹${canteenCash.toFixed(2)}`, 14, finalY + 40);
+    doc.text(`Breakage Cash: ₹${breakageCash.toFixed(2)}`, 14, finalY + 50);
+    doc.text(`Total Cash: ₹${totalPaymentReceived.toFixed(2)}`, 14, finalY + 60);
+    doc.text(`Total Desi Sale: ₹${totalDesiSale.toFixed(2)}`, 14, finalY + 70);
+    doc.text(`Total Beer Sale: ₹${totalBeerSale.toFixed(2)}`, 14, finalY + 80);
 
     const pdfBlob = doc.output("blob");
 
@@ -203,8 +224,9 @@ const Stocks = () => {
       console.error(error);
     }
 
-    doc.save(`invoice_${currentDate}.pdf`);
+    doc.save(`Invoice-${invoiceDate}.pdf`); // Save with dynamic invoice number
   };
+
 
   const openModal = () => {
     setModalIsOpen(true);
@@ -212,6 +234,10 @@ const Stocks = () => {
 
   const closeModal = () => {
     setModalIsOpen(false);
+  };
+
+  const closeSummaryModal = () => {
+    setSummaryModalIsOpen(false);
   };
 
   return (
@@ -231,128 +257,187 @@ const Stocks = () => {
             Amariya
           </button>
         </nav>
-        <h2 className="text-3xl mb-6 text-center font-semibold">Stocks - {shop}</h2>
-        {error && <div className="text-red-500 mb-4">{error}</div>}
-      
-        {loading ? (
-          <div className="text-center">Loading...</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full bg-white border-collapse">
-              <thead>
-                <tr className="bg-gray-200">
-                  <th className="py-2 px-4 border">Product</th>
-                  <th className="py-2 px-4 border">Size</th>
-                  <th className="py-2 px-4 border">Open Stocks</th>
-                  <th className="py-2 px-4 border">Price</th>
-                  <th className="py-2 px-4 border">Close Stocks</th>
-                  <th className="py-2 px-4 border">Calculated Price (₹)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stocks.map((stock) => (
-                  <tr key={stock._id} className="hover:bg-gray-100">
-                    <td className="py-2 px-4 border">{stock.product}</td>
-                    <td className="py-2 px-4 border">{stock.size}ml</td>
-                    <td className="py-2 px-4 border">{stock.lastQuantity}</td>
-                    <td className="py-2 px-4 border">₹{stock.price}</td>
-                    <td className="py-2 px-4 border">
+        <h1 className="text-2xl font-semibold mb-4 text-center">
+          Stock Management ({shop})
+        </h1>
+        <div className="flex flex-row align-middle items-center">
+          <label className="block mb-2 m-2 ">Select Date:</label>
+          <input
+            type="date"
+            value={pdfDate}
+            onChange={(e) => setPdfDate(e.target.value)}
+            className="border p-2 rounded m-2"
+          />
+        </div>
+        <div className="overflow-x-auto">
+          <table className="table-auto w-full">
+            <thead>
+              <tr>
+                <th className="px-4 py-2 border">Product</th>
+                <th className="px-4 py-2 border">Size</th>
+                <th className="px-4 py-2 border">Opening Stock</th>
+                <th className="px-4 py-2 border">Closing Stock</th>
+                <th className="px-4 py-2 border">Sold Quantity</th>
+                <th className="px-4 py-2 border">Price (₹)</th>
+                <th className="px-4 py-2 border">Total Sale (₹)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stocks.map((stock) => {
+                const newQuantity = newQuantities[stock._id] !== undefined ? newQuantities[stock._id] : stock.lastQuantity;
+                const soldQuantity = stock.lastQuantity - newQuantity;
+                const totalSaleAmount = soldQuantity * stock.price;
+
+                return (
+                  <tr key={stock._id}>
+                    <td className="border px-4 py-2">{stock.product}</td>
+                    <td className="border px-4 py-2">{stock.size}</td>
+                    <td className="border px-4 py-2">{stock.lastQuantity}</td>
+                    <td className="border px-4 py-2">
                       <input
                         type="number"
                         placeholder="New Quantity"
-                        className="border p-2 rounded w-full"
                         onChange={(e) =>
                           setNewQuantities({
                             ...newQuantities,
-                            [stock._id]: e.target.value || stock.lastQuantity,
+                            [stock._id]: e.target.value === "" ? stock.lastQuantity : Number(e.target.value),
                           })
                         }
+                        className="w-full border px-2 py-1"
                       />
                     </td>
-                    <td className="py-2 px-4 border">
-                      ₹{((stock.lastQuantity - (newQuantities[stock._id] || stock.lastQuantity)) * stock.price).toFixed(2)}
+                    <td className="border px-4 py-2">{soldQuantity}</td>
+                    <td className="border px-4 py-2">{stock.price}</td>
+                    <td className="border px-4 py-2">
+                      ₹{totalSaleAmount.toFixed(2)}
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        <div className="mt-6 flex flex-wrap justify-between items-end">
-          <div className="mb-2 w-full md:w-auto md:mr-2">
-            <label htmlFor="upiPayment" className="block mb-1">
-              UPI Payment
-            </label>
-            <input
-              type="number"
-              id="upiPayment"
-              value={upiPayment}
-              onChange={(e) => setUpiPayment(Number(e.target.value))}
-              placeholder="Enter UPI Payment"
-              className="border p-2 w-full rounded"
-            />
-          </div>
-          <div className="mb-2 w-full md:w-auto md:mr-2">
-            <label htmlFor="discount" className="block mb-1">
-              Discount
-            </label>
-            <input
-              type="number"
-              id="discount"
-              value={discount}
-              onChange={(e) => setDiscount(Number(e.target.value))}
-              placeholder="Enter Discount"
-              className="border p-2 w-full rounded"
-            />
-          </div>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="mt-4">
           <button
             onClick={openModal}
-            className="bg-green-500 text-white p-2 rounded w-full md:w-auto"
+            className="bg-blue-500 text-white py-2 px-4 rounded"
           >
-            Update All Stocks
+            Update Stocks
           </button>
         </div>
 
-        {totalSale !== 0 && (
-          <div className="mt-6">
-            <div className="text-lg font-semibold text-green-600">Summary</div>
-            <div className="mt-2">UPI Amount: ₹{upiPayment.toFixed(2)}</div>
-            <div className="mt-2">Discount Amount: ₹{discount.toFixed(2)}</div>
-            <div className="mt-2 text-green-500">
-              Total Desi Sale: ₹{totalDesiSale.toFixed(2)}
-            </div>
-            <div className="mt-2 text-green-500">
-              Total Beer Sale: ₹{totalBeerSale.toFixed(2)}
-            </div>
-            <div className="mt-4 text-green-500">
-              Total Sale: ₹{totalSale.toFixed(2)}
-            </div>
-            <div className="mt-2">
-              Cash Amount: ₹{(totalSale - upiPayment - discount).toFixed(2)}
+        {modalIsOpen && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+            <div className="bg-white p-6 rounded shadow-md w-1/2">
+              <div className="flex justify-between mt-4">
+                <div className="bg-gray-200 p-4 rounded shadow w-1/2 mr-4">
+                  <p className="font-semibold">Total Sale: ₹{totalSale.toFixed(2)}</p>
+                  <p className="font-semibold">UPI Payment: <span className="text-red-500">₹{upiPayment.toFixed(2)}</span></p>
+                  <p className="font-semibold">Discount: <span className="text-red-500">₹{discount.toFixed(2)}</span></p>
+                  <p className="font-semibold">Canteen Cash: <span className="text-green-500">₹{canteenCash.toFixed(2)}</span></p>
+                  <p className="font-semibold">Breakage Cash: <span className="text-red-500">₹{breakageCash.toFixed(2)}</span></p>
+                  <p className="font-semibold">Salary: <span className="text-red-500">₹{salary.toFixed(2)}</span></p>
+                  <p className="font-semibold">Total Cash : ₹{(totalSale + canteenCash - breakageCash - discount - salary - upiPayment).toFixed(2)}</p>
+                <p className="font-semibold"> Total Desi Sale: ₹{totalDesiSale.toFixed(2)}</p>
+                <p className="font-semibold"> Total Beer Sale: ₹{totalBeerSale.toFixed(2)}</p>
+                
+                
+                
+                
+                </div>
+                <div className="bg-gray-200 p-4 rounded shadow w-1/2">
+                  <label className="block mb-2">Discount (₹):</label>
+                  <input
+                    type="number"
+                    value={discount}
+                    onChange={(e) => setDiscount(Number(e.target.value))}
+                    className="border p-2 w-full rounded"
+                  />
+                  <label className="block mb-2 mt-2">Salary (₹):</label>
+                  <input
+                    type="number"
+                    value={salary}
+                    onChange={(e) => setSalary(Number(e.target.value))}
+                    className="border p-2 w-full rounded"
+                  />
+                  <label className="block mb-2 mt-2">UPI Payment (₹):</label>
+                  <input
+                    type="number"
+                    value={upiPayment}
+                    onChange={(e) => setUpiPayment(Number(e.target.value))}
+                    className="border p-2 w-full rounded"
+                  />
+                  <label className="block mb-2 mt-2">Canteen Cash (₹):</label>
+                  <input
+                    type="number"
+                    value={canteenCash}
+                    onChange={(e) => setCanteenCash(Number(e.target.value))}
+                    className="border p-2 w-full rounded"
+                  />
+                  <label className="block mb-2 mt-2">Breakage Cash (₹):</label>
+                  <input
+                    type="number"
+                    value={breakageCash}
+                    onChange={(e) => setBreakageCash(Number(e.target.value))}
+                    className="border p-2 w-full rounded"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end mt-4">
+                <button
+                  onClick={closeModal}
+                  className="bg-gray-300 py-2 px-6 rounded-md text-lg font-medium mr-4 hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={onConfirmUpdate}
+                  className="bg-blue-500 text-white py-2 px-6 rounded-md text-lg font-medium hover:bg-blue-600"
+                >
+                  Confirm
+                </button>
+              </div>
             </div>
           </div>
         )}
       </div>
 
-      {modalIsOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
+      {summaryModalIsOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h2 className="text-xl font-bold mb-4">Confirm Update</h2>
-            <p>Are you sure you want to update the stock quantities?</p>
-            <div className="mt-4 flex justify-end">
+            <p className="text-lg font-semibold mb-4">
+              Are you sure you want to update the stocks?
+            </p>
+            <div className="flex justify-end mt-6">
               <button
-                onClick={closeModal}
-                className="mr-2 bg-gray-500 text-white p-2 rounded"
+                onClick={closeSummaryModal}
+                className="bg-gray-300 py-2 px-6 rounded-md text-lg font-medium mr-4 hover:bg-gray-400"
               >
                 Cancel
               </button>
               <button
                 onClick={onUpdateStocks}
-                className="bg-green-500 text-white p-2 rounded"
+                className="bg-blue-500 text-white py-2 px-6 rounded-md text-lg font-medium hover:bg-blue-600"
               >
                 Confirm
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <p className="text-lg font-semibold">Loading...</p>
+          </div>
+        </div>
+      )}
+      {error && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <p className="text-lg font-semibold text-red-600">{error}</p>
           </div>
         </div>
       )}
