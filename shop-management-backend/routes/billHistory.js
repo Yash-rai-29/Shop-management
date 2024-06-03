@@ -5,21 +5,27 @@ const auth = require('../middleware/auth');  // Import authentication middleware
 const logEvent = require('../middleware/LogEvent');
 
 // Create a new bill history record
-router.post('/', auth(['admin']), async (req, res) => {  // Apply authentication middleware
-  const { updatedStocks, totalSales, upiPayment, discount, desiSales, beerSales, shop } = req.body;
+router.post('/', auth(['admin']), async (req, res) => {
+  const { updatedStocks, pdfDate, totalSales, upiPayment, discount, breakageCash, canteenCash, desiSales, beerSales, salary, shop } = req.body;
+  
   try {
     const newBillHistory = new BillHistory({
       updatedStocks,
+      pdfDate,
       totalSales,
       upiPayment,
       discount,
+      breakageCash,
+      canteenCash,
       desiSales,
       beerSales,
+      salary,
       shop,
     });
-    console.log(req.user, req.body);
+
     await newBillHistory.save();
-    await logEvent(req.user.name, 'New bill history record added', 'billHistory', 'POST /api/billHistory', { updatedStocks, totalSales, upiPayment, discount, desiSales, beerSales, shop });
+    await logEvent(req.user.name, 'New bill history record added', 'billHistory', 'POST /api/billHistory', { updatedStocks, pdfDate, totalSales, upiPayment, discount, breakageCash, canteenCash, desiSales, beerSales, salary, shop });
+    
     res.status(201).json(newBillHistory);
   } catch (error) {
     res.status(500).json({ message: 'Error saving bill history', error });
@@ -27,7 +33,7 @@ router.post('/', auth(['admin']), async (req, res) => {  // Apply authentication
 });
 
 // Get bill history
-router.get('/', auth(['admin', 'employee']), async (req, res) => {  // Apply authentication middleware
+router.get('/', auth(['admin', 'employee']), async (req, res) => {
   const { month } = req.query;
 
   try {
@@ -35,10 +41,10 @@ router.get('/', auth(['admin', 'employee']), async (req, res) => {  // Apply aut
     if (month) {
       const date = new Date(month + '-01');
       const nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
-      filter.date = { $gte: date, $lt: nextMonth };
+      filter.pdfDate = { $gte: date, $lt: nextMonth };
     }
 
-    const billHistories = await BillHistory.find(filter).sort({ date: -1 });
+    const billHistories = await BillHistory.find(filter).sort({ pdfDate: -1 });
     res.status(200).json(billHistories);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching bill history', error });

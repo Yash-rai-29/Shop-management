@@ -91,7 +91,6 @@ const Stocks = () => {
     setSummaryModalIsOpen(true);
     setModalIsOpen(false);
   };
-
   const onUpdateStocks = async () => {
     setLoading(true);
 
@@ -112,10 +111,10 @@ const Stocks = () => {
       setStocks(updatedStocks);
 
       await generateInvoice(updatedStocks);
-
       // Send data to backend to store in bill history
       await axios.post(`${process.env.REACT_APP_API_URL}/billHistory`, {
         updatedStocks,
+        pdfDate,
         totalSale,
         upiPayment,
         discount,
@@ -123,7 +122,7 @@ const Stocks = () => {
           canteenCash,
         totalDesiSale,
         totalBeerSale, 
-       
+        salary,
         shop,
       });
 

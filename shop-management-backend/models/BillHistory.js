@@ -11,11 +11,15 @@ const BillHistorySchema = new mongoose.Schema({
       totalSale: Number,
     }
   ],
+  pdfDate: { type: Date, required: true },
   totalSales: Number,
   upiPayment: Number,
   discount: Number,
+  breakageCash: Number,
+  canteenCash: Number,
   desiSales: Number,
   beerSales: Number,
+  salary: Number,
   shop: String,
   date: { type: Date, default: Date.now },
 });
