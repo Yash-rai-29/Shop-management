@@ -49,6 +49,26 @@ const BillHistory = () => {
     return typeof amount === 'number' ? `₹${amount.toFixed(2)}` : 'N/A';
   };
 
+  const downloadInvoice = async (id, index) => {
+    if (!user || !user.token) {
+      setError("User not authenticated");
+      return;
+    }
+
+    try {
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/invoices/${id}`);
+
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = `invoice_${index + 1}.pdf`;
+      link.click();
+    } catch (error) {
+      setError("Error downloading invoice");
+      console.error("Error downloading invoice:", error);
+    }
+  };
+
   return (
     <div className="p-6 bg-gray-100 min-h-screen text-gray-900">
       <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-lg p-6">
@@ -84,10 +104,11 @@ const BillHistory = () => {
                   <th className="py-2 px-4 border">Rent</th>
                   <th className="py-2 px-4 border">Total Cash</th>
                   <th className="py-2 px-4 border">Shop</th>
+                  <th className="py-2 px-4 border">Download Invoice</th>
                 </tr>
               </thead>
               <tbody>
-                {billHistory.map((bill) => (
+                {billHistory.map((bill, index) => (
                   <tr key={bill._id} className="hover:bg-gray-100">
                     <td className="py-2 px-4 border">{new Date(bill.pdfDate).toLocaleDateString()}</td>
                     <td className="py-2 px-4 border">{formatCurrency(bill.totalSale)}</td>
@@ -102,6 +123,14 @@ const BillHistory = () => {
                     <td className="py-2 px-4 border">{formatCurrency(bill.rent)}</td>
                     <td className="py-2 px-4 border">{formatCurrency(bill.totalPaymentReceived)}</td>
                     <td className="py-2 px-4 border">{bill.shop}</td>
+                    <td className="py-2 px-4 border">
+                      <button
+                        onClick={() => downloadInvoice(bill.invoiceId, index)}
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                      >
+                        Download
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

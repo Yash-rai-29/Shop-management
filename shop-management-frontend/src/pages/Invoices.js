@@ -44,26 +44,6 @@ const Invoices = () => {
     fetchInvoices();
   }, [user, loading]);
 
-  const downloadInvoice = async (id, index) => {
-    if (!user || !user.token) {
-      setError("User not authenticated");
-      return;
-    }
-
-    try {
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/invoices/${id}`);
-
-      const blob = new Blob([res.data], { type: 'application/pdf' });
-      const link = document.createElement('a');
-      link.href = window.URL.createObjectURL(blob);
-      link.download = `invoice_${index + 1}.pdf`;
-      link.click();
-    } catch (error) {
-      setError("Error downloading invoice");
-      console.error("Error downloading invoice:", error);
-    }
-  };
-
   const handleMonthChange = (event) => {
     const month = event.target.value;
     setSelectedMonth(month);
@@ -107,14 +87,6 @@ const Invoices = () => {
                   <p className="text-lg font-medium text-gray-900">
                     Invoice {index + 1} - {new Date(invoice.createdAt).toLocaleString()}
                   </p>
-                </div>
-                <div>
-                  <button
-                    onClick={() => downloadInvoice(invoice._id, index)}
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                  >
-                    Download
-                  </button>
                 </div>
               </li>
             ))
