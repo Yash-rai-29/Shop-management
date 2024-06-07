@@ -1,30 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { FaSortUp, FaSortDown } from 'react-icons/fa';
 
 const Records = () => {
     const [isAdding, setIsAdding] = useState(true);
-    const [recordName, setRecordName] = useState('');
+    const [recordName, setRecordName] = useState('Purchase Stock');
     const [shopName, setShopName] = useState('');
     const [message, setMessage] = useState('');
     const [amount, setAmount] = useState('');
-    const [month, setMonth] = useState('');
+    const [date, setDate] = useState('');
     const [records, setRecords] = useState([]);
-    const [filterMonth, setFilterMonth] = useState('');
+    const [filterDate, setFilterDate] = useState('');
     const [sortOrder, setSortOrder] = useState('asc');
 
     useEffect(() => {
         fetchRecords();
-    }, [filterMonth, sortOrder]);
+    }, [filterDate, sortOrder]);
 
     useEffect(() => {
-        const currentMonth = new Date().toISOString().substr(0, 7);
-        setMonth(currentMonth);
+        const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+        setDate(currentDate);
     }, []);
 
     const fetchRecords = async () => {
         try {
             const response = await axios.get(`${process.env.REACT_APP_API_URL}/records`, {
-                params: { month: filterMonth, sortOrder }
+                params: { date: filterDate, sortOrder }
             });
             setRecords(response.data);
         } catch (error) {
@@ -40,15 +41,15 @@ const Records = () => {
                 shopName,
                 message,
                 amount,
-                month
+                date
             });
             alert('Record added successfully');
             fetchRecords();
-            setRecordName('');
+            setRecordName('Purchase Stock');
             setShopName('');
             setMessage('');
             setAmount('');
-            setMonth('');
+            setDate(new Date().toISOString().split('T')[0]);
         } catch (error) {
             console.error('There was an error adding the record!', error);
         }
@@ -56,16 +57,16 @@ const Records = () => {
 
     return (
         <div className="container mx-auto p-4">
-            <h1 className="text-2xl mb-4">Records</h1>
-            <div className="flex justify-center mb-4">
+            <h1 className="text-3xl font-bold mb-4 text-center">Records</h1>
+            <div className="flex justify-center mb-6">
                 <button 
-                    className={`mr-4 py-2 px-4 rounded ${isAdding ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                    className={`mr-4 py-2 px-6 rounded-lg ${isAdding ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'} transition duration-300 ease-in-out`}
                     onClick={() => setIsAdding(true)}
                 >
                     Add Record
                 </button>
                 <button 
-                    className={`py-2 px-4 rounded ${!isAdding ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                    className={`py-2 px-6 rounded-lg ${!isAdding ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'} transition duration-300 ease-in-out`}
                     onClick={() => setIsAdding(false)}
                 >
                     List Records
@@ -73,21 +74,23 @@ const Records = () => {
             </div>
 
             {isAdding ? (
-                <form onSubmit={handleSubmit} className="max-w-lg mx-auto bg-white p-8 rounded shadow">
-                    <div className="mb-4">
+                <form onSubmit={handleSubmit} className="max-w-lg mx-auto bg-white p-8 rounded-lg shadow-lg">
+                    <div className="mb-6">
                         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="recordName">
                             Record Name
                         </label>
-                        <input
-                            type="text"
+                        <select
                             id="recordName"
                             value={recordName}
                             onChange={(e) => setRecordName(e.target.value)}
                             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             required
-                        />
+                        >
+                            <option value="Purchase Stock">Purchase Stock</option>
+                            <option value="Receive Payment">Receive Payment</option>
+                        </select>
                     </div>
-                    <div className="mb-4">
+                    <div className="mb-6">
                         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="shopName">
                             Shop Name
                         </label>
@@ -103,7 +106,7 @@ const Records = () => {
                             <option value="amariya">Amariya</option>
                         </select>
                     </div>
-                    <div className="mb-4">
+                    <div className="mb-6">
                         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="message">
                             Message
                         </label>
@@ -115,7 +118,7 @@ const Records = () => {
                             required
                         />
                     </div>
-                    <div className="mb-4">
+                    <div className="mb-6">
                         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="amount">
                             Amount
                         </label>
@@ -128,38 +131,38 @@ const Records = () => {
                             required
                         />
                     </div>
-                    <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="month">
-                            Month
+                    <div className="mb-6">
+                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="date">
+                            Date
                         </label>
                         <input
-                            type="month"
-                            id="month"
-                            value={month}
-                            onChange={(e) => setMonth(e.target.value)}
+                            type="date"
+                            id="date"
+                            value={date}
+                            onChange={(e) => setDate(e.target.value)}
                             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             required
                         />
                     </div>
-                    <button type="submit" className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    <button type="submit" className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline">
                         Submit
                     </button>
                 </form>
             ) : (
-                <div className="max-w-lg mx-auto bg-white p-8 rounded shadow">
-                    <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="filterMonth">
-                            Filter by Month
+                <div className="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-lg">
+                    <div className="mb-6">
+                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="filterDate">
+                            Filter by Date
                         </label>
                         <input
-                            type="month"
-                            id="filterMonth"
-                            value={filterMonth}
-                            onChange={(e) => setFilterMonth(e.target.value)}
+                            type="date"
+                            id="filterDate"
+                            value={filterDate}
+                            onChange={(e) => setFilterDate(e.target.value)}
                             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                         />
                     </div>
-                    <div className="mb-4">
+                    <div className="mb-6">
                         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="sortOrder">
                             Sort by Amount
                         </label>
@@ -173,18 +176,33 @@ const Records = () => {
                             <option value="desc">Descending</option>
                         </select>
                     </div>
-                    <div>
-                        {records.map(record => (
-                            <div key={record._id} className="mb-4 p-4 border rounded shadow">
-                                <h2 className="text-xl font-bold">{record.recordName}</h2>
-                                <p>Shop: {record.shopName}</p>
-                                <p>Message: {record.message}</p>
-                                <p>Amount: ₹{record.amount}</p>
-                                <p>Date: {new Date(record.date).toLocaleDateString()}</p>
-                                <p>Month: {record.month}</p>
-                            </div>
-                        ))}
-                    </div>
+                    <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow">
+                        <thead>
+                            <tr>
+                                <th className="py-3 px-6 text-left bg-gray-100 border-b border-gray-200">Record Name</th>
+                                <th className="py-3 px-6 text-left bg-gray-100 border-b border-gray-200">Shop Name</th>
+                                <th className="py-3 px-6 text-left bg-gray-100 border-b border-gray-200">Message</th>
+                                <th className="py-3 px-6 text-right bg-gray-100 border-b border-gray-200">
+                                    Amount
+                                    <button className="ml-2" onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
+                                        {sortOrder === 'asc' ? <FaSortUp /> : <FaSortDown />}
+                                    </button>
+                                </th>
+                                <th className="py-3 px-6 text-left bg-gray-100 border-b border-gray-200">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {records.map((record) => (
+                                <tr key={record._id}>
+                                    <td className="py-4 px-6 border-b border-gray-200">{record.recordName}</td>
+                                    <td className="py-4 px-6 border-b border-gray-200">{record.shopName}</td>
+                                    <td className="py-4 px-6 border-b border-gray-200">{record.message}</td>
+                                    <td className="py-4 px-6 border-b border-gray-200 text-right">₹{record.amount}</td>
+                                    <td className="py-4 px-6 border-b border-gray-200">{new Date(record.date).toLocaleDateString()}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             )}
         </div>

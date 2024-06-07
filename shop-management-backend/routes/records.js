@@ -6,7 +6,7 @@ const Record = require('../models/Record');
 // @desc    Add a new record
 // @access  Private
 router.post('/', async (req, res) => {
-    const { recordName, shopName, message, amount, month } = req.body;
+    const { recordName, shopName, message, amount, date } = req.body;
 
     try {
         const newRecord = new Record({
@@ -14,7 +14,7 @@ router.post('/', async (req, res) => {
             shopName,
             message,
             amount,
-            month
+            date: new Date(date) // Ensure date is properly formatted
         });
 
         const record = await newRecord.save();
@@ -29,13 +29,18 @@ router.post('/', async (req, res) => {
 // @desc    Get records with optional filtering and sorting
 // @access  Private
 router.get('/', async (req, res) => {
-    const { month, sortOrder } = req.query;
+    const { date, sortOrder } = req.query;
     const sort = sortOrder === 'desc' ? -1 : 1;
 
     try {
         let query = {};
-        if (month) {
-            query.month = month;
+        if (date) {
+            // Create date range for the entire day
+            const startDate = new Date(date);
+            startDate.setHours(0, 0, 0, 0);
+            const endDate = new Date(date);
+            endDate.setHours(23, 59, 59, 999);
+            query.date = { $gte: startDate, $lte: endDate };
         }
 
         const records = await Record.find(query).sort({ amount: sort });

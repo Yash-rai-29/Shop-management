@@ -26,9 +26,7 @@ router.post('/', auth(['admin']), async (req, res) => {
       shop,
     });
 
-    await newBillHistory.save();
-    await logEvent(req.user.name, 'New bill history record added', 'billHistory', 'POST /api/billHistory', { updatedStocks, pdfDate, totalSales, upiPayment, discount, breakageCash, canteenCash, desiSales, beerSales, salary, shop });
-    
+    await newBillHistory.save();    
     res.status(201).json(newBillHistory);
   } catch (error) {
     res.status(500).json({ message: 'Error saving bill history', error });

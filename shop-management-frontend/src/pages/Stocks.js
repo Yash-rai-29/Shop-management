@@ -135,7 +135,6 @@ const Stocks = () => {
         rent,
         shop,
         totalPaymentReceived
-
       });
 
       setError("");
@@ -242,7 +241,7 @@ const Stocks = () => {
       formData.append('file', pdfBlob, `invoice_${new Date().toISOString()}.pdf`);
   
       await axios.post(
-        "https://shop-management-im3g.onrender.com/api/invoices",
+        `${process.env.REACT_APP_API_URL}/invoices`,
         formData,
         {
           headers: {

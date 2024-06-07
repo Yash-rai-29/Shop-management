@@ -19,10 +19,7 @@ const RecordSchema = new mongoose.Schema({
     },
     date: {
         type: Date,
-        default: Date.now
-    },
-    month: {
-        type: String,
+        default: Date.now,
         required: true
     }
 });
