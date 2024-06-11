@@ -112,7 +112,7 @@ const Home = () => {
         const filteredRecords = records.filter(record => record.recordName === 'Receive Payment' && (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase()));
         
         const totalPayments = filteredRecords.reduce((acc, record) => acc + record.amount, 0);
-        const totalCash = billHistory.reduce((acc, bill) => acc + bill.totalSale, 0);
+        const totalCash = billHistory.reduce((acc, bill) => acc + bill.totalPaymentReceived, 0);
         const remainingCash = totalCash - totalPayments;
 
         return { totalCash, totalPayments, remainingCash };
@@ -220,8 +220,8 @@ const Home = () => {
                         <h2 className="text-xl font-bold mb-2">Financial Summary</h2>
                         <div className="flex justify-between">
                             <div>
-                                <p className="text-gray-700">Total Cash: <span className="font-bold">₹{totalCash.toFixed(2)}</span></p>
-                                <p className="text-gray-700">Total Payments: <span className="font-bold">₹{totalPayments.toFixed(2)}</span></p>
+                                <p className="text-gray-700">Total Payment Received: <span className="font-bold">₹{totalCash.toFixed(2)}</span></p>
+                                <p className="text-gray-700">Total Bank Deposit: <span className="font-bold">₹{totalPayments.toFixed(2)}</span></p>
                                 <p className="text-gray-700">Remaining Cash: <span className="font-bold">₹{remainingCash.toFixed(2)}</span></p>
                             </div>
                         </div>
