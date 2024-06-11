@@ -55,6 +55,30 @@ const Records = () => {
         }
     };
 
+     // Prevent default behavior of the input elements to avoid value change on scroll or arrow key press
+  useEffect(() => {
+    const handleWheel = (event) => {
+      if (event.target.tagName === 'INPUT') {
+        event.preventDefault();
+      }
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.target.tagName === 'INPUT' && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+        event.preventDefault();
+      }
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('wheel', handleWheel);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+
     return (
         <div className="container mx-auto p-4">
             <h1 className="text-3xl font-bold mb-4 text-center">Records</h1>

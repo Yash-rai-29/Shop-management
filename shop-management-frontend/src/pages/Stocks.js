@@ -271,6 +271,7 @@ const Stocks = () => {
     setSummaryModalIsOpen(false);
   };
 
+  
   return (
     <div className="p-6 bg-gray-100 min-h-screen text-gray-900">
       <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-lg p-6">
@@ -334,6 +335,7 @@ const Stocks = () => {
                             [stock._id]: e.target.value === "" ? stock.lastQuantity : Number(e.target.value),
                           })
                         }
+                           onWheel={(e) => e.preventDefault()} // Disable mouse wheel
                         className="w-full border px-2 py-1"
                       />
                     </td>

@@ -75,6 +75,30 @@ const TransferStock = () => {
     setShowModal(false);
   };
 
+   // Prevent default behavior of the input elements to avoid value change on scroll or arrow key press
+   useEffect(() => {
+    const handleWheel = (event) => {
+      if (event.target.tagName === 'INPUT') {
+        event.preventDefault();
+      }
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.target.tagName === 'INPUT' && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+        event.preventDefault();
+      }
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('wheel', handleWheel);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+
   return (
     <div className="p-6 bg-gray-100 min-h-screen text-gray-800">
       <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-6">
