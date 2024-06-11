@@ -105,6 +105,7 @@ const ReceiveStock = () => {
     setDeleteId(null);
   };
 
+
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-6">
@@ -147,6 +148,8 @@ const ReceiveStock = () => {
                       onChange={(e) => handleQuantityChange(stock._id, Number(e.target.value))}
                       className="border p-2 w-full rounded no-arrows"
                       min="0"
+                      onWheel={(e) => e.preventDefault()}
+  onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
                     />
                   </td>
                   <td className="py-3 px-5 border-b">
@@ -199,6 +202,9 @@ const ReceiveStock = () => {
               className="border p-2 w-full rounded"
               placeholder="Enter quantity"
               min="0"
+              onWheel={(e) => e.preventDefault()}
+  onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
+              
             />
           </div>
           <div className="mb-4">
@@ -209,7 +215,9 @@ const ReceiveStock = () => {
               onChange={(e) => setNewStock({ ...newStock, price: Number(e.target.value) })}
               className="border p-2 w-full rounded"
               placeholder="Enter price"
-              min="0"
+              
+              onWheel={(e) => e.preventDefault()}
+  onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
             />
           </div>
           <button

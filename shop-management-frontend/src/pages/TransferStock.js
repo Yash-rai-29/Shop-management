@@ -142,6 +142,8 @@ const TransferStock = () => {
             onChange={(e) => setTransferQuantity(Number(e.target.value))}
             className="border p-2 w-full bg-gray-200 text-gray-800 rounded"
             placeholder="Enter quantity to transfer"
+            onWheel={(e) => e.preventDefault()}
+  onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
           />
         </div>
         <button

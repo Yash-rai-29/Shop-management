@@ -332,8 +332,10 @@ const Stocks = () => {
                           setNewQuantities({
                             ...newQuantities,
                             [stock._id]: e.target.value === "" ? stock.lastQuantity : Number(e.target.value),
-                          })
+                         })
                         }
+                        onWheel={(e) => e.preventDefault()}
+  onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
                         className="w-full border px-2 py-1"
                       />
                     </td>
@@ -386,6 +388,8 @@ const Stocks = () => {
                     value={discount}
                     onChange={(e) => setDiscount(Number(e.target.value))}
                     className="border p-2 w-full rounded"
+                    onWheel={(e) => e.preventDefault()}
+  onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
                   />
                   <label className="block mb-2 mt-2">Salary (₹):</label>
                   <input
@@ -393,6 +397,8 @@ const Stocks = () => {
                     value={salary}
                     onChange={(e) => setSalary(Number(e.target.value))}
                     className="border p-2 w-full rounded"
+                    onWheel={(e) => e.preventDefault()}
+  onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
                   />
                   <label className="block mb-2 mt-2">UPI Payment (₹):</label>
                   <input
@@ -400,6 +406,8 @@ const Stocks = () => {
                     value={upiPayment}
                     onChange={(e) => setUpiPayment(Number(e.target.value))}
                     className="border p-2 w-full rounded"
+                    onWheel={(e) => e.preventDefault()}
+  onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
                   />
                   <label className="block mb-2 mt-2">Canteen Cash (₹):</label>
                   <input
@@ -407,6 +415,8 @@ const Stocks = () => {
                     value={canteenCash}
                     onChange={(e) => setCanteenCash(Number(e.target.value))}
                     className="border p-2 w-full rounded"
+                    onWheel={(e) => e.preventDefault()}
+  onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
                   />
                   <label className="block mb-2 mt-2">Breakage Cash (₹):</label>
                   <input
@@ -414,6 +424,8 @@ const Stocks = () => {
                     value={breakageCash}
                     onChange={(e) => setBreakageCash(Number(e.target.value))}
                     className="border p-2 w-full rounded"
+                    onWheel={(e) => e.preventDefault()}
+  onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
                   />
                     <label className="block mb-2 mt-2">Rate Diffrence (₹):</label>
                   <input
@@ -421,6 +433,8 @@ const Stocks = () => {
                     value={rateDiff}
                     onChange={(e) => setRateDiff(Number(e.target.value))}
                     className="border p-2 w-full rounded"
+                    onWheel={(e) => e.preventDefault()}
+  onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
                   />
                     <label className="block mb-2 mt-2">Rent (₹):</label>
                   <input
@@ -428,6 +442,8 @@ const Stocks = () => {
                     value={rent}
                     onChange={(e) => setRent(Number(e.target.value))}
                     className="border p-2 w-full rounded"
+                    onWheel={(e) => e.preventDefault()}
+  onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
                   />
                 </div>
               </div>
