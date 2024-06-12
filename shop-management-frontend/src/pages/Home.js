@@ -112,7 +112,7 @@ const Home = () => {
         const filteredRecords = records.filter(record => record.recordName === 'Receive Payment' && (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase()));
         
         const totalPayments = filteredRecords.reduce((acc, record) => acc + record.amount, 0);
-        const totalCash = billHistory().reduce((acc, bill) => acc + bill.totalPaymentReceived, 0);
+        const totalCash = billHistory.reduce((acc, bill) => acc + bill.totalPaymentReceived, 0);
         const remainingCash = totalCash - totalPayments;
 
         return { totalCash, totalPayments, remainingCash };
