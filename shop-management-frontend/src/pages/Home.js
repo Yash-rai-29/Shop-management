@@ -14,6 +14,7 @@ import {
     PointElement
 } from 'chart.js';
 import { AuthContext } from "../context/AuthContext";
+import 'tailwindcss/tailwind.css';
 
 ChartJS.register(
     CategoryScale,
@@ -135,6 +136,29 @@ const Home = () => {
             return acc;
         }, {});
 
+        const brandSales = filteredBillHistory.reduce((acc, bill) => {
+            bill.updatedStocks.forEach(stock => {
+                acc[stock.product] = (acc[stock.product] || 0) + (stock.lastQuantity - stock.quantity);
+            });
+            return acc;
+        }, {});
+
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            hover: {
+                mode: 'nearest',
+                intersect: true,
+                onHover: (event, chartElement) => {
+                    event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                }
+            },
+            animation: {
+                duration: 1000,
+                easing: 'easeOutQuart'
+            }
+        };
+
         const pieData = {
             labels: Object.keys(shopSales),
             datasets: [
@@ -142,6 +166,8 @@ const Home = () => {
                     data: Object.values(shopSales),
                     backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
                     hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
+                    hoverBorderColor: 'rgba(0, 0, 0, 0.5)',
+                    hoverBorderWidth: 2
                 },
             ],
         };
@@ -153,6 +179,7 @@ const Home = () => {
                     label: 'Daily Sales Amount',
                     data: Object.values(dailySales),
                     backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    hoverBackgroundColor: 'rgba(54, 162, 235, 0.8)'
                 },
             ],
         };
@@ -163,21 +190,35 @@ const Home = () => {
                 label: shop,
                 data: filteredBillHistory.filter(bill => bill.shop === shop).map(bill => bill.totalSale),
                 borderColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'][index],
-                fill: false,
+                backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                pointHoverBorderColor: 'rgba(0, 0, 0, 0.5)',
+                pointHoverBorderWidth: 2
             })),
         };
 
-        return { pieData, barData, lineData };
+        const brandData = {
+            labels: Object.keys(brandSales),
+            datasets: [
+                {
+                    label: 'Brand Sales Quantity',
+                    data: Object.values(brandSales),
+                    backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                    hoverBackgroundColor: 'rgba(153, 102, 255, 0.8)'
+                },
+            ],
+        };
+
+        return { pieData, barData, lineData, brandData, commonOptions };
     };
 
-    const { pieData, barData, lineData } = prepareChartData();
+    const { pieData, barData, lineData, brandData, commonOptions } = prepareChartData();
 
     return (
         <div className="container mx-auto p-4">
-            <h1 className="text-3xl font-bold mb-4 text-center">Shop Management Dashboard</h1>
+            <h1 className="text-4xl font-bold mb-8 text-center text-indigo-600">Shop Management Dashboard</h1>
             {error && <div className="text-red-500 mb-4 text-center">{error}</div>}
             {loading ? (
-                <div className="text-center">Loading...</div>
+                <div className="text-center text-indigo-600 animate-pulse">Loading...</div>
             ) : (
                 <>
                     <div className="flex justify-center mb-6">
@@ -186,7 +227,7 @@ const Home = () => {
                             <select
                                 value={selectedShop}
                                 onChange={handleShopChange}
-                                className="border p-2 rounded w-full"
+                                className="border p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-300 ease-in-out"
                             >
                                 <option value="">All Shops</option>
                                 <option value="vamanpui">Vamanpui</option>
@@ -198,7 +239,7 @@ const Home = () => {
                             <select
                                 value={dateFilter}
                                 onChange={handleDateFilterChange}
-                                className="border p-2 rounded w-full"
+                                className="border p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-300 ease-in-out"
                             >
                                 <option value="date">Date</option>
                                 <option value="month">Month</option>
@@ -212,12 +253,12 @@ const Home = () => {
                                 type={dateFilter === 'week' ? 'date' : dateFilter}
                                 value={dateValue}
                                 onChange={handleDateValueChange}
-                                className="border p-2 rounded w-full"
+                                className="border p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-300 ease-in-out"
                             />
                         </div>
                     </div>
-                    <div className="bg-white p-4 rounded-lg shadow mb-6">
-                        <h2 className="text-xl font-bold mb-2">Financial Summary</h2>
+                    <div className="bg-white p-6 rounded-lg shadow mb-6">
+                        <h2 className="text-2xl font-bold mb-4 text-indigo-600">Financial Summary</h2>
                         <div className="flex justify-between">
                             <div>
                                 <p className="text-gray-700">Total Payment Received: <span className="font-bold">₹{totalCash.toFixed(2)}</span></p>
@@ -226,18 +267,30 @@ const Home = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-white p-4 rounded-lg shadow">
-                            <h2 className="text-xl font-bold mb-2">Total Sales Distribution</h2>
-                            <Pie data={pieData} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <div className="bg-white p-6 rounded-lg shadow h-[400px]">
+                            <h2 className="text-2xl font-bold mb-4">Total Sales Distribution</h2>
+                            <div className="h-[300px]">
+                                <Pie data={pieData} options={commonOptions} />
+                            </div>
                         </div>
-                        <div className="bg-white p-4 rounded-lg shadow">
-                            <h2 className="text-xl font-bold mb-2">Daily Sales Amount</h2>
-                            <Bar data={barData} />
+                        <div className="bg-white p-6 rounded-lg shadow h-[400px]">
+                            <h2 className="text-2xl font-bold mb-4">Daily Sales Amount</h2>
+                            <div className="h-[300px]">
+                                <Bar data={barData} options={commonOptions} />
+                            </div>
                         </div>
-                        <div className="bg-white p-4 rounded-lg shadow col-span-1 md:col-span-2">
-                            <h2 className="text-xl font-bold mb-2">Sales Trend per Shop</h2>
-                            <Line data={lineData} />
+                        <div className="bg-white p-6 rounded-lg shadow h-[400px]">
+                            <h2 className="text-2xl font-bold mb-4">Brand Sales Quantity</h2>
+                            <div className="h-[300px]">
+                                <Bar data={brandData} options={commonOptions} />
+                            </div>
+                        </div>
+                        <div className="bg-white p-6 rounded-lg shadow h-[400px]">
+                            <h2 className="text-2xl font-bold mb-4">Sales Trend per Shop</h2>
+                            <div className="h-[300px]">
+                                <Line data={lineData} options={commonOptions} />
+                            </div>
                         </div>
                     </div>
                 </>
