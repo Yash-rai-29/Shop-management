@@ -55,6 +55,7 @@ const Records = () => {
         }
     };
 
+
     return (
         <div className="container mx-auto p-4">
             <h1 className="text-3xl font-bold mb-4 text-center">Records</h1>
@@ -88,6 +89,7 @@ const Records = () => {
                         >
                             <option value="Receive Payment">Bank Deposit</option>
                             <option value="Purchase Stock">Purchase Stock</option>
+                            <option value="Bribe">Bribe</option>
                         </select>
                     </div>
                     <div className="mb-6">
@@ -129,8 +131,6 @@ const Records = () => {
                             onChange={(e) => setAmount(e.target.value)}
                             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             required
-                            onWheel={(e) => e.preventDefault()}
-  onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
                         />
                     </div>
                     <div className="mb-6">
@@ -186,7 +186,7 @@ const Records = () => {
                                 <th className="py-3 px-6 text-left bg-gray-100 border-b border-gray-200">Message</th>
                                 <th className="py-3 px-6 text-right bg-gray-100 border-b border-gray-200">
                                     Amount
-                                    <button className="ml-2" onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
+                                    <button onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} className="ml-2 focus:outline-none">
                                         {sortOrder === 'asc' ? <FaSortUp /> : <FaSortDown />}
                                     </button>
                                 </th>
@@ -195,11 +195,11 @@ const Records = () => {
                         </thead>
                         <tbody>
                             {records.map((record) => (
-                                <tr key={record._id}>
+                                <tr key={record.id}>
                                     <td className="py-4 px-6 border-b border-gray-200">{record.recordName}</td>
                                     <td className="py-4 px-6 border-b border-gray-200">{record.shopName}</td>
                                     <td className="py-4 px-6 border-b border-gray-200">{record.message}</td>
-                                    <td className="py-4 px-6 border-b border-gray-200 text-right">₹{record.amount}</td>
+                                    <td className="py-4 px-6 border-b border-gray-200 text-right">{record.amount}</td>
                                     <td className="py-4 px-6 border-b border-gray-200">{new Date(record.date).toLocaleDateString()}</td>
                                 </tr>
                             ))}
