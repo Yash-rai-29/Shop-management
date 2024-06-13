@@ -107,17 +107,34 @@ const Home = () => {
         return filteredBillHistory;
     };
 
-    // Calculate totals
     const calculateTotals = () => {
-        const filteredRecords = records.filter(record => record.recordName === 'Receive Payment' && (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase()));
+        // Filter records for 'Receive Payment' and the selected shop (if any)
+        const filteredPayments = records.filter(record => 
+          record.recordName === 'Receive Payment' && 
+          (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
+        );
         
-        const totalPayments = filteredRecords.reduce((acc, record) => acc + record.amount, 0);
-        const totalCash = billHistory.reduce((acc, bill) => acc + bill.totalPaymentReceived, 0);
-        const remainingCash = totalCash - totalPayments;
-
-        return { totalCash, totalPayments, remainingCash };
-    };
-
+        // Filter records for 'Bribe' and the selected shop (if any)
+        const filteredBribes = records.filter(record => 
+          record.recordName === 'Bribe' && 
+          (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
+        );
+      
+        // Calculate total 'Receive Payment' amounts
+        const totalPayments = filteredPayments.reduce((acc, record) => acc + record.amount, 0);
+      
+        // Calculate total 'Bribe' amounts
+        const totalBribes = filteredBribes.reduce((acc, record) => acc + record.amount, 0);
+      
+        // Calculate total cash from bill history
+        const totalCash = filterData().reduce((acc, bill) => acc + bill.totalPaymentReceived, 0);
+      
+        // Calculate remaining cash by subtracting total payments and bribes from total cash
+        const remainingCash = totalCash - totalPayments - totalBribes;
+      
+        return { totalCash, totalPayments, totalBribes, remainingCash };
+      };
+      
     const { totalCash, totalPayments, remainingCash } = calculateTotals();
 
     // Prepare data for charts
@@ -130,14 +147,16 @@ const Home = () => {
         }, {});
 
         const dailySales = filteredBillHistory.reduce((acc, bill) => {
-            const date = new Date(bill.pdfDate).toLocaleDateString();
+            const date = new Date(bill.pdfDate).toISOString().split('T')[0]; // Use the date in YYYY-MM-DD format
             acc[date] = (acc[date] || 0) + bill.totalSale;
             return acc;
         }, {});
 
         const brandSales = filteredBillHistory.reduce((acc, bill) => {
             bill.updatedStocks.forEach(stock => {
-                acc[stock.product] = (acc[stock.product] || 0) + (stock.lastQuantity - stock.quantity);
+                if (stock.product.toLowerCase() !== stock.product.toLowerCase().includes("desi")) {
+                    acc[stock.product] = (acc[stock.product] || 0) + (stock.lastQuantity - stock.quantity);
+                }
             });
             return acc;
         }, {});
@@ -171,12 +190,14 @@ const Home = () => {
             ],
         };
 
+        const sortedDates = Object.keys(dailySales).sort((a, b) => new Date(a) - new Date(b));
+
         const barData = {
-            labels: Object.keys(dailySales),
+            labels: sortedDates,
             datasets: [
                 {
                     label: 'Daily Sales Amount',
-                    data: Object.values(dailySales),
+                    data: sortedDates.map(date => dailySales[date]),
                     backgroundColor: 'rgba(54, 162, 235, 0.6)',
                     hoverBackgroundColor: 'rgba(54, 162, 235, 0.8)'
                 },
@@ -184,10 +205,13 @@ const Home = () => {
         };
 
         const lineData = {
-            labels: Object.keys(dailySales),
+            labels: sortedDates,
             datasets: Object.keys(shopSales).map((shop, index) => ({
                 label: shop,
-                data: filteredBillHistory.filter(bill => bill.shop === shop).map(bill => bill.totalSale),
+                data: sortedDates.map(date => {
+                    const billForDateAndShop = filteredBillHistory.find(bill => bill.shop === shop && new Date(bill.pdfDate).toISOString().split('T')[0] === date);
+                    return billForDateAndShop ? billForDateAndShop.totalSale : 0;
+                }),
                 borderColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'][index],
                 backgroundColor: 'rgba(0, 0, 0, 0.1)',
                 pointHoverBorderColor: 'rgba(0, 0, 0, 0.5)',
@@ -213,7 +237,9 @@ const Home = () => {
     const { pieData, barData, lineData, brandData, commonOptions } = prepareChartData();
 
     return (
-        <div className="container mx-auto p-4">
+
+        <div>
+        <div className="container mx-auto p-4" >
             <h1 className="text-4xl font-bold mb-8 text-center text-indigo-600">Shop Management Dashboard</h1>
             {error && <div className="text-red-500 mb-4 text-center">{error}</div>}
             {loading ? (
@@ -260,32 +286,38 @@ const Home = () => {
                         <h2 className="text-2xl font-bold mb-4 text-indigo-600">Financial Summary</h2>
                         <div className="flex justify-between">
                             <div>
-                                <p className="text-gray-700">Total Payment Received: <span className="font-bold">₹{totalCash.toFixed(2)}</span></p>
-                                <p className="text-gray-700">Total Bank Deposit: <span className="font-bold">₹{totalPayments.toFixed(2)}</span></p>
-                                <p className="text-gray-700">Remaining Cash: <span className="font-bold">₹{remainingCash.toFixed(2)}</span></p>
+                                <p className="text-gray-700 hover:scale-105 hover:-translate-y-1 transition-transform duration-300">
+                                    Total Cash Received: <span className="font-bold">₹{totalCash.toFixed(2)}</span>
+                                </p>
+                                <p className="text-gray-700 hover:scale-105 hover:-translate-y-1 transition-transform duration-300">
+                                    Total Bank Deposit: <span className="font-bold">₹{totalPayments.toFixed(2)}</span>
+                                </p>
+                                <p className="text-gray-700 hover:scale-105 hover:-translate-y-1 transition-transform duration-300">
+                                    Remaining Cash: <span className="font-bold">₹{remainingCash.toFixed(2)}</span>
+                                </p>
                             </div>
                         </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                        <div className="bg-white p-6 rounded-lg shadow h-[400px]">
+                        <div className="bg-white p-6 rounded-lg shadow h-[400px] hover:shadow-lg transition-shadow duration-300">
                             <h2 className="text-2xl font-bold mb-4">Total Sales Distribution</h2>
                             <div className="h-[300px]">
                                 <Pie data={pieData} options={commonOptions} />
                             </div>
                         </div>
-                        <div className="bg-white p-6 rounded-lg shadow h-[400px]">
+                        <div className="bg-white p-6 rounded-lg shadow h-[400px] hover:shadow-lg transition-shadow duration-300">
                             <h2 className="text-2xl font-bold mb-4">Daily Sales Amount</h2>
                             <div className="h-[300px]">
                                 <Bar data={barData} options={commonOptions} />
                             </div>
                         </div>
-                        <div className="bg-white p-6 rounded-lg shadow h-[400px]">
+                        <div className="bg-white p-6 rounded-lg shadow h-[400px] hover:shadow-lg transition-shadow duration-300">
                             <h2 className="text-2xl font-bold mb-4">Brand Sales Quantity</h2>
                             <div className="h-[300px]">
                                 <Bar data={brandData} options={commonOptions} />
                             </div>
                         </div>
-                        <div className="bg-white p-6 rounded-lg shadow h-[400px]">
+                        <div className="bg-white p-6 rounded-lg shadow h-[400px] hover:shadow-lg transition-shadow duration-300">
                             <h2 className="text-2xl font-bold mb-4">Sales Trend per Shop</h2>
                             <div className="h-[300px]">
                                 <Line data={lineData} options={commonOptions} />
@@ -295,6 +327,8 @@ const Home = () => {
                 </>
             )}
         </div>
+    </div>
+
     );
 };
 

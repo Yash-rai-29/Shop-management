@@ -74,24 +74,32 @@ const BillHistory = () => {
     return records.filter(record => {
       const recordDate = new Date(record.date);
       const recordMonth = recordDate.toISOString().substring(0, 7);
-      return record.recordName === 'Receive Payment' &&
-             (!shop || record.shopName.toLowerCase() === shop.toLowerCase()) &&
+      return (!shop || record.shopName.toLowerCase() === shop.toLowerCase()) &&
              recordMonth === month;
     });
   };
-  
+
   const filteredBillHistory = filterBillHistory(billHistory, shop, month);
   const filteredRecords = filterRecords(records, shop, month);
+
   const totalCashInShop = filteredBillHistory.reduce((acc, bill) => acc + bill.totalPaymentReceived, 0);
-  const totalReceivedPayments = filteredRecords.reduce((acc, record) => acc + record.amount, 0);
-  const cashLeftInShop = totalCashInShop - totalReceivedPayments;
+
+  const totalReceivedPayments = filteredRecords
+    .filter(record => record.recordName === 'Receive Payment')
+    .reduce((acc, record) => acc + record.amount, 0);
+
+  const totalBribes = filteredRecords
+    .filter(record => record.recordName === 'Bribe')
+    .reduce((acc, record) => acc + record.amount, 0);
+
+  const cashLeftInShop = totalCashInShop - totalReceivedPayments - totalBribes;
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen text-gray-900">
       <div className="max-w-full mx-auto bg-white shadow-lg rounded-lg p-6">
         <h2 className="text-3xl mb-6 text-center font-semibold">Bill History</h2>
         {error && <div className="text-red-500 mb-4">{error}</div>}
-        <div className="mb-4 flex gap-4">
+        <div className="mb-4 flex flex-col md:flex-row gap-4">
           <div className="w-full">
             <label htmlFor="month" className="block mb-1 text-lg font-medium text-gray-700">Filter by Month</label>
             <input
@@ -124,7 +132,7 @@ const BillHistory = () => {
           <div className="text-center">Loading...</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full bg-white border-collapse shadow-md">
+            <table className="w-full bg-white border-collapse shadow-md text-sm md:text-base">
               <thead>
                 <tr className="bg-gray-200 text-gray-700">
                   <th className="py-2 px-4 border">Date</th>
