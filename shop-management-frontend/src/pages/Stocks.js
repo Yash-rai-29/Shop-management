@@ -272,7 +272,7 @@ const Stocks = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen text-gray-900">
+    <div className="p-6 bg-blue-300 min-h-screen text-gray-900">
       <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-lg p-6">
         <nav className="mb-4 flex justify-center space-x-4">
           <button

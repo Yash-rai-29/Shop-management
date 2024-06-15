@@ -55,9 +55,8 @@ const Records = () => {
         }
     };
 
-
     return (
-        <div className="container mx-auto p-4">
+        <div className=" mx-auto  p-4 bg-blue-300">
             <h1 className="text-3xl font-bold mb-4 text-center">Records</h1>
             <div className="flex justify-center mb-6">
                 <button 
@@ -89,7 +88,9 @@ const Records = () => {
                         >
                             <option value="Receive Payment">Bank Deposit</option>
                             <option value="Purchase Stock">Purchase Stock</option>
-                            <option value="Bribe">Bribe</option>
+                            <option value="Excise Inspector Payment">Excise Inspector Payment</option>
+                            <option value="Directly Purchase Stock">Directly Purchase Stock</option>
+                            <option value="Salary">Salary</option>
                         </select>
                     </div>
                     <div className="mb-6">
@@ -151,7 +152,7 @@ const Records = () => {
                     </button>
                 </form>
             ) : (
-                <div className="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-lg">
+                <div className="max-w-4xl h-screen mx-auto bg-white p-8 rounded-lg shadow-lg">
                     <div className="mb-6">
                         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="filterDate">
                             Filter by Date

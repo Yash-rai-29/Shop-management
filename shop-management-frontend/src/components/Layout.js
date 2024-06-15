@@ -5,19 +5,15 @@ import NavBar from "./Navbar";
 const Layout = () => {
     const [isNavBarOpen, setIsNavBarOpen] = useState(false);
 
-    const toggleNavBar = () => {
-        setIsNavBarOpen(!isNavBarOpen);
+    const toggleNavBar = (state) => {
+        setIsNavBarOpen(state);
     };
 
     return (
-        <div className="flex h-full">
+        <div className="relative flex">
             <NavBar isOpen={isNavBarOpen} toggleNavBar={toggleNavBar} />
-            <div
-                className={`transition-all duration-300 ease-in-out flex-grow ${isNavBarOpen ? 'ml-64' : 'ml-0'}`}
-            >
-                <div className="p-4">
-                    <Outlet />
-                </div>
+            <div className="flex-grow">
+                <Outlet />
             </div>
         </div>
     );

@@ -95,7 +95,7 @@ const BillHistory = () => {
   const cashLeftInShop = totalCashInShop - totalReceivedPayments - totalBribes;
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen text-gray-900">
+    <div className="p-6 bg-blue-300 min-h-screen text-gray-900">
       <div className="max-w-full mx-auto bg-white shadow-lg rounded-lg p-6">
         <h2 className="text-3xl mb-6 text-center font-semibold">Bill History</h2>
         {error && <div className="text-red-500 mb-4">{error}</div>}
