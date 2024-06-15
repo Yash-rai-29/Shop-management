@@ -24,7 +24,7 @@ const App = () => {
     return (
         <AuthProvider>
                 <Routes>
-                    <Route path="/" element={<Layout />}>
+                        <Route  path="/" element={<Layout />}>
                         <Route index element={<Home />} />
                         <Route path="/invoices" element={<PrivateRoute element={Invoices} />} />
                         <Route path="/stocks" element={<PrivateRoute element={Stocks} />} />

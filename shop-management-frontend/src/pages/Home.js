@@ -74,13 +74,13 @@ const Home = () => {
 
   const filterData = () => {
     let filteredBillHistory = billHistory;
-
+  
     if (selectedShop) {
       filteredBillHistory = filteredBillHistory.filter(
         (bill) => bill.shop.toLowerCase() === selectedShop.toLowerCase()
       );
     }
-
+  
     if (dateValue) {
       filteredBillHistory = filteredBillHistory.filter((bill) => {
         const billDate = new Date(bill.pdfDate);
@@ -88,7 +88,9 @@ const Home = () => {
           case "date":
             return billDate.toISOString().split("T")[0] === dateValue;
           case "month":
-            return billDate.toISOString().substring(0, 7) === dateValue;
+           
+            const selectedDate = new Date(dateValue);
+            return billDate.getMonth() === selectedDate.getMonth() && billDate.getFullYear() === selectedDate.getFullYear();
           case "year":
             return billDate.getFullYear().toString() === dateValue;
           case "week":
@@ -101,19 +103,28 @@ const Home = () => {
         }
       });
     }
-
+  
     return filteredBillHistory;
   };
-
+  
   const calculateTotals = () => {
     // Filter records for 'Receive Payment' and the selected shop (if any)
-    const filteredPayments = records.filter(
-      (record) =>
-        record.recordName === "Receive Payment" &&
-        (!selectedShop ||
-          record.shopName.toLowerCase() === selectedShop.toLowerCase())
-    );
-
+    const filteredPayments = records.filter((record) => {
+      // Filter by record name and shop if selected
+      const isReceivePayment = record.recordName === "Receive Payment";
+      const matchesShop = !selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase();
+    
+      // Check if the payment date matches the selected month
+      if (dateFilter === "month" && dateValue) {
+        const paymentDate = new Date(record.date); // Assuming 'date' field contains the payment date
+        const selectedDate = new Date(dateValue);
+        return isReceivePayment && matchesShop && paymentDate.getMonth() === selectedDate.getMonth() && paymentDate.getFullYear() === selectedDate.getFullYear();
+      }
+    
+      // Default filter (without month filter)
+      return isReceivePayment && matchesShop;
+    });
+    
     const filteredBribes = records.filter(
       (record) =>
         record.recordName === "Bribe" &&
@@ -155,7 +166,8 @@ const Home = () => {
       0
     );
 
-    const remainingCash = totalCash - totalPayments - totalBribes;
+    const remainingCash = Math.max(0, totalCash - totalPayments - totalBribes);
+
     const totalBankBalance = totalPayments + totalUPIPayments;
 
     return {
@@ -500,9 +512,9 @@ const Home = () => {
   };
 
   return (
-    <div className="p-4 h-screen">
+    <div className=" p-4 h-auto bg-blue-300">
       <header className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold mb-4 ml-96">Summary</h2>
+        <h2 className="text-2xl font-bold mb-4 ml-96">Dashboard</h2>
         <div className="ml-auto flex space-x-2">
           <select
             onChange={handleShopChange}
@@ -545,7 +557,7 @@ const Home = () => {
 
       <div className="flex gap-4 w-auto justify-around m-4">
         <div className="flex flex-wrap gap-8 h-auto w-100%">
-          <div className="bg-blue-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center rounded-md w-52">
+          <div className="bg-gray-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center rounded-md w-52">
             <h3 className="text-xl font-semibold mb-2">Total Cash</h3>
             <p className="text-xl">₹ {totalCash.toFixed(2)}</p>
           </div>

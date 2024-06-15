@@ -76,7 +76,7 @@ const TransferStock = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen text-gray-800">
+    <div className="p-6 bg-blue-300 min-h-screen text-gray-800">
       <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-6">
         <h2 className="text-3xl mb-6 text-center font-semibold">Transfer Stock</h2>
         {error && <div className="text-red-500 mb-4">{error}</div>}

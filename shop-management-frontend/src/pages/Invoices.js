@@ -65,7 +65,7 @@ const Invoices = () => {
   }
 
   return (
-    <div className="p-4 max-w-7xl mx-auto">
+    <div className="p-4  bg-blue-300 mx-auto">
       <h2 className="text-3xl mb-6 font-bold text-center">Invoices</h2>
       {error && <div className="text-red-500 mb-4 text-center">{error}</div>}
       <div className="mb-4 flex justify-center">
