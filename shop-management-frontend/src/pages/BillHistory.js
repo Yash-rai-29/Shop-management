@@ -121,7 +121,6 @@ const BillHistory = () => {
               <option value="">All Shops</option>
               <option value="Vamanpui">Vamanpui</option>
               <option value="Amariya">Amariya</option>
-              {/* Add more shops as needed */}
             </select>
           </div>
         </div>
