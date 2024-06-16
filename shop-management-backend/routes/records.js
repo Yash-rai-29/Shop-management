@@ -2,11 +2,9 @@ const express = require('express');
 const router = express.Router();
 const Record = require('../models/Record');
 
-// @route   POST api/records
-// @desc    Add a new record
-// @access  Private
+
 router.post('/', async (req, res) => {
-    const { recordName, shopName, message, amount, date } = req.body;
+    const { recordName, shopName, message, amount, date,paymentMethod } = req.body;
 
     try {
         const newRecord = new Record({
@@ -14,7 +12,8 @@ router.post('/', async (req, res) => {
             shopName,
             message,
             amount,
-            date: new Date(date) // Ensure date is properly formatted
+            date: new Date(date), // Ensure date is properly formatted
+            paymentMethod
         });
 
         const record = await newRecord.save();

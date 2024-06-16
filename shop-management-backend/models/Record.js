@@ -21,7 +21,8 @@ const RecordSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
         required: true
-    }
+    },
+    paymentMethod: { type: String, required: true }
 });
 
 module.exports = mongoose.model('Record', RecordSchema);

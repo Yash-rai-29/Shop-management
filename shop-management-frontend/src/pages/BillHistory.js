@@ -84,16 +84,6 @@ const BillHistory = () => {
 
   const totalCashInShop = filteredBillHistory.reduce((acc, bill) => acc + bill.totalPaymentReceived, 0);
 
-  const totalReceivedPayments = filteredRecords
-    .filter(record => record.recordName === 'Receive Payment')
-    .reduce((acc, record) => acc + record.amount, 0);
-
-  const totalBribes = filteredRecords
-    .filter(record => record.recordName === 'Bribe')
-    .reduce((acc, record) => acc + record.amount, 0);
-
-  const cashLeftInShop = totalCashInShop - totalReceivedPayments - totalBribes;
-
   return (
     <div className="p-6 bg-blue-300 min-h-screen text-gray-900">
       <div className="max-w-full mx-auto bg-white shadow-lg rounded-lg p-6">
@@ -124,9 +114,7 @@ const BillHistory = () => {
             </select>
           </div>
         </div>
-        <div className="mb-6 text-center">
-          <h4 className="text-2xl font-semibold">Cash Left in Shop: {formatCurrency(cashLeftInShop)}</h4>
-        </div>
+      
         {loading ? (
           <div className="text-center">Loading...</div>
         ) : (
