@@ -3,7 +3,6 @@ import axios from "axios";
 import ReactApexChart from "react-apexcharts";
 import { AuthContext } from "../context/AuthContext";
 import "tailwindcss/tailwind.css";
-import ApexCharts from "apexcharts";
 
 const Home = () => {
   const { user, loading: userLoading } = useContext(AuthContext);
@@ -64,7 +63,7 @@ const Home = () => {
       case "month":
         return "month";
       case "year":
-        return "year"; // Use number input for year
+        return "number"; // Use number input for year
       case "week":
         return "week"; // Use week input for week
       default:
@@ -74,13 +73,13 @@ const Home = () => {
 
   const filterData = () => {
     let filteredBillHistory = billHistory;
-  
+
     if (selectedShop) {
       filteredBillHistory = filteredBillHistory.filter(
         (bill) => bill.shop.toLowerCase() === selectedShop.toLowerCase()
       );
     }
-  
+
     if (dateValue) {
       filteredBillHistory = filteredBillHistory.filter((bill) => {
         const billDate = new Date(bill.pdfDate);
@@ -88,9 +87,11 @@ const Home = () => {
           case "date":
             return billDate.toISOString().split("T")[0] === dateValue;
           case "month":
-           
             const selectedDate = new Date(dateValue);
-            return billDate.getMonth() === selectedDate.getMonth() && billDate.getFullYear() === selectedDate.getFullYear();
+            return (
+              billDate.getMonth() === selectedDate.getMonth() &&
+              billDate.getFullYear() === selectedDate.getFullYear()
+            );
           case "year":
             return billDate.getFullYear().toString() === dateValue;
           case "week":
@@ -103,80 +104,73 @@ const Home = () => {
         }
       });
     }
-  
+
     return filteredBillHistory;
   };
-  
+
   const calculateTotals = () => {
-    // Filter records for 'Receive Payment' and the selected shop (if any)
     const filteredPayments = records.filter((record) => {
-      // Filter by record name and shop if selected
       const isReceivePayment = record.recordName === "Receive Payment";
       const matchesShop = !selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase();
-    
-      // Check if the payment date matches the selected month
+
       if (dateFilter === "month" && dateValue) {
-        const paymentDate = new Date(record.date); // Assuming 'date' field contains the payment date
+        const paymentDate = new Date(record.date);
         const selectedDate = new Date(dateValue);
-        return isReceivePayment && matchesShop && paymentDate.getMonth() === selectedDate.getMonth() && paymentDate.getFullYear() === selectedDate.getFullYear();
+        return (
+          isReceivePayment &&
+          matchesShop &&
+          paymentDate.getMonth() === selectedDate.getMonth() &&
+          paymentDate.getFullYear() === selectedDate.getFullYear()
+        );
       }
-    
-      // Default filter (without month filter)
+
       return isReceivePayment && matchesShop;
     });
-    
+
     const filteredBribes = records.filter(
       (record) =>
         record.recordName === "Bribe" &&
-        (!selectedShop ||
-          record.shopName.toLowerCase() === selectedShop.toLowerCase())
+        (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
     );
 
     const filteredPurchaseStocks = records.filter(
       (record) =>
         record.recordName === "Purchase Stock" &&
-        (!selectedShop ||
-          record.shopName.toLowerCase() === selectedShop.toLowerCase())
+        (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
     );
 
-    const totalPayments = filteredPayments.reduce(
-      (acc, record) => acc + record.amount,
-      0
-    );
+    const totalPayments = filteredPayments.reduce((acc, record) => acc + record.amount, 0);//total cash 
 
-    const totalBribes = filteredBribes.reduce(
-      (acc, record) => acc + record.amount,
-      0
-    );
+    const totalBribes = filteredBribes.reduce((acc, record) => acc + record.amount, 0);
 
     const filteredBillHistory = filterData();
 
-    const totalCash = filteredBillHistory.reduce(
-      (acc, bill) => acc + bill.totalPaymentReceived,
-      0
-    );
-
-    const totalPurchaseStocks = filteredPurchaseStocks.reduce(
-      (acc, record) => acc + record.amount,
-      0
-    );
-
-    const totalUPIPayments = filteredBillHistory.reduce(
-      (acc, bill) => acc + bill.upiPayment,
-      0
-    );
-
-    const remainingCash = Math.max(0, totalCash - totalPayments - totalBribes);
-
+    
+    const totalPurchaseStocks = filteredPurchaseStocks.reduce((acc, record) => acc + record.amount, 0);
+    
+    const totalUPIPayments = filteredBillHistory.reduce((acc, bill) => acc + bill.upiPayment, 0);
+    
+    const totalCash = filteredBillHistory.reduce((acc, bill) => acc + bill.totalPaymentReceived, 0);//remainning cash 
     const totalBankBalance = totalPayments + totalUPIPayments;
-
-    // New totals for the additional records
+    const totalCashAfterDeducting = totalCash - records
+    .filter(record => record.paymentMethod === 'By Cash')
+    .reduce((acc, record) => acc + record.amount, 0);
+    const totalBankBalanceAfterDeducting = totalBankBalance - records
+    .filter(record => record.paymentMethod === 'By Bank')
+    .reduce((acc, record) => acc + record.amount, 0);
     const totalExciseInspector = records
       .filter(
         (record) =>
           record.recordName === "Excise Inspector Payment" &&
-          (!selectedShop ||
-            record.shopName.toLowerCase() === selectedShop.toLowerCase())
+          (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
+      )
+      .reduce((acc, record) => acc + record.amount, 0);
+
+    const totalPurchaseBalance = records
+      .filter(
+        (record) =>
+          record.recordName === "Purchase Stock" &&
+          (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
       )
       .reduce((acc, record) => acc + record.amount, 0);
 
@@ -184,8 +178,7 @@ const Home = () => {
       .filter(
         (record) =>
           record.recordName === "Directly Purchase Stock" &&
-          (!selectedShop ||
-            record.shopName.toLowerCase() === selectedShop.toLowerCase())
+          (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
       )
       .reduce((acc, record) => acc + record.amount, 0);
 
@@ -193,27 +186,19 @@ const Home = () => {
       .filter(
         (record) =>
           record.recordName === "Salary" &&
-          (!selectedShop ||
-            record.shopName.toLowerCase() === selectedShop.toLowerCase())
+          (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
       )
       .reduce((acc, record) => acc + record.amount, 0);
 
-      const totalRent = filteredBillHistory.reduce(
-        (acc, bill) => acc + (bill.rent || 0),
-        0
-      );
-  
-      const totalTransportation = filteredBillHistory.reduce(
-        (acc, bill) => acc + (bill.transportation || 0),
-        0
-      );
-  
-      const totalBreakageCash = filteredBillHistory.reduce(
-        (acc, bill) => acc + (bill.breakageCash || 0),
-        0
-      );
-  
-  
+    const totalRent = filteredBillHistory.reduce((acc, bill) => acc + (bill.rent || 0), 0);
+
+    const totalTransportation = filteredBillHistory.reduce(
+      (acc, bill) => acc + (bill.transportation || 0),
+      0
+    );
+
+    const totalBreakageCash = filteredBillHistory.reduce((acc, bill) => acc + (bill.breakageCash || 0), 0);
+    const remainingCash = Math.max(0, totalCash - totalPayments);
 
     return {
       totalCash,
@@ -224,27 +209,33 @@ const Home = () => {
       totalPurchaseStocks,
       totalBankBalance,
       totalExciseInspector,
-      totalDirectPurchase,
-      totalSalary,   totalRent,
+      totalDirectPurchase,totalBankBalanceAfterDeducting,
+      totalSalary,
+      totalRent,
       totalTransportation,
-      totalBreakageCash
+      totalCashAfterDeducting,
+      totalBreakageCash,
+      totalPurchaseBalance,
     };
   };
 
   const {
     totalCash,
     totalPayments,
-    remainingCash,
+    remainingCash,totalBankBalanceAfterDeducting,
     totalUPIPayments,
     totalBankBalance,
     totalPurchaseStocks,
     totalExciseInspector,
+    totalCashAfterDeducting,
     totalDirectPurchase,
     totalSalary,
     totalRent,
     totalTransportation,
     totalBreakageCash,
+    totalPurchaseBalance,
   } = calculateTotals();
+
   useEffect(() => {
     const { areaData, pieData, lineData, brandData } = prepareChartData();
     setAreaData(areaData);
@@ -620,7 +611,7 @@ const Home = () => {
             <p className="text-xl">₹ {totalCash.toFixed(2)}</p>
           </div>
           <div className="bg-green-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center rounded-md w-52">
-            <h3 className="text-xl font-semibold mb-2">Total Payments</h3>
+            <h3 className="text-xl font-semibold mb-2">Total Bank Deposit</h3>
             <p className="text-xl">₹ {totalPayments.toFixed(2)}</p>
           </div>
           <div className="bg-yellow-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center rounded-md w-52">
@@ -629,18 +620,13 @@ const Home = () => {
           </div>
           <div className="bg-purple-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center rounded-md w-52">
             <h3 className="text-xl font-semibold mb-2">Remaining Cash</h3>
-            <p className="text-xl">₹ {remainingCash.toFixed(2)}</p>
+            <p className="text-xl">₹ {totalCashAfterDeducting.toFixed(2)}</p>
           </div>
           <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52 rounded-md">
             <h3 className="text-xl font-semibold mb-2">Total Bank Balance</h3>
-            <p className="text-xl">₹ {totalBankBalance.toFixed(2)}</p>
+            <p className="text-xl">₹ {totalBankBalanceAfterDeducting.toFixed(2)}</p>
           </div>
-          <div className="bg-pink-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52 rounded-md">
-            <h3 className="text-xl font-semibold mb-2">
-              Total Purchase Balance
-            </h3>
-            <p className="text-xl">₹ {totalPurchaseStocks.toFixed(2)}</p>
-          </div>
+  
         </div>
       </div>
 
@@ -669,7 +655,7 @@ const Home = () => {
           <div className="flex flex-wrap w-full gap-6 ">     
           <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52  rounded-md ">
             <h3 className=" font-semibold text-lg mb-2">Total Purchase Stock</h3>
-            <p className="text-xl">₹ {totalPurchaseStocks.toFixed(2)}</p>
+            <p className="text-xl">₹ {totalPurchaseBalance.toFixed(2)}</p>
           </div>
           <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52  rounded-md ">
             <h3 className=" font-semibold text-lg mb-2">Total Excise Inspector</h3>
