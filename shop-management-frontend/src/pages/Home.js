@@ -109,108 +109,87 @@ const Home = () => {
   };
 
   const calculateTotals = () => {
+    const matchesShop = (record) =>
+      !selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase();
+  
     const filteredPayments = records.filter((record) => {
       const isReceivePayment = record.recordName === "Receive Payment";
-      const matchesShop = !selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase();
-
       if (dateFilter === "month" && dateValue) {
         const paymentDate = new Date(record.date);
         const selectedDate = new Date(dateValue);
         return (
           isReceivePayment &&
-          matchesShop &&
+          matchesShop(record) &&
           paymentDate.getMonth() === selectedDate.getMonth() &&
           paymentDate.getFullYear() === selectedDate.getFullYear()
         );
       }
-
-      return isReceivePayment && matchesShop;
+      return isReceivePayment && matchesShop(record);
     });
-
-    const filteredBribes = records.filter(
-      (record) =>
-        record.recordName === "Bribe" &&
-        (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
-    );
-
+  
     const filteredPurchaseStocks = records.filter(
-      (record) =>
-        record.recordName === "Purchase Stock" &&
-        (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
+      (record) => record.recordName === "Purchase Stock" && matchesShop(record)
     );
-
-    const totalPayments = filteredPayments.reduce((acc, record) => acc + record.amount, 0);//total cash 
-
-    const totalBribes = filteredBribes.reduce((acc, record) => acc + record.amount, 0);
-
-    const filteredBillHistory = filterData();
-
-    
+  
+    const totalPayments = filteredPayments.reduce((acc, record) => acc + record.amount, 0);
+  
+  
+    const filteredBillHistory = filterData().filter(matchesShop);
+  
     const totalPurchaseStocks = filteredPurchaseStocks.reduce((acc, record) => acc + record.amount, 0);
-    
+  
     const totalUPIPayments = filteredBillHistory.reduce((acc, bill) => acc + bill.upiPayment, 0);
-    
-    const totalCash = filteredBillHistory.reduce((acc, bill) => acc + bill.totalPaymentReceived, 0);//remainning cash 
+  
+    const totalCash = filteredBillHistory.reduce((acc, bill) => acc + bill.totalPaymentReceived, 0);
+  
     const totalBankBalance = totalPayments + totalUPIPayments;
-
-    
+  
     const totalExciseInspector = records
-      .filter(
-        (record) =>
-          record.recordName === "Excise Inspector Payment" &&
-          (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
-      )
+      .filter((record) => record.recordName === "Excise Inspector Payment" && matchesShop(record))
       .reduce((acc, record) => acc + record.amount, 0);
-
+  
     const totalPurchaseBalance = records
-      .filter(
-        (record) =>
-          record.recordName === "Purchase Stock" &&
-          (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
-      )
+      .filter((record) => record.recordName === "Purchase Stock" && matchesShop(record))
       .reduce((acc, record) => acc + record.amount, 0);
-
+  
     const totalDirectPurchase = records
-      .filter(
-        (record) =>
-          record.recordName === "Directly Purchase Stock" &&
-          (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
-      )
+      .filter((record) => record.recordName === "Directly Purchase Stock" && matchesShop(record))
       .reduce((acc, record) => acc + record.amount, 0);
-
+  
     const totalSalary = records
-      .filter(
-        (record) =>
-          record.recordName === "Salary" &&
-          (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
-      )
+      .filter((record) => record.recordName === "Salary" && matchesShop(record))
       .reduce((acc, record) => acc + record.amount, 0);
-
+  
     const totalRent = filteredBillHistory.reduce((acc, bill) => acc + (bill.rent || 0), 0);
-
+  
     const totalTransportation = filteredBillHistory.reduce(
       (acc, bill) => acc + (bill.transportation || 0),
       0
     );
-
+  
     const totalBreakageCash = filteredBillHistory.reduce((acc, bill) => acc + (bill.breakageCash || 0), 0);
+  
     const remainingCash = Math.max(0, totalCash - totalPayments);
+  
     const totalCashAfterDeducting = remainingCash - records
-    .filter(record => record.paymentMethod === 'By Cash')
-    .reduce((acc, record) => acc + record.amount, 0);
+      .filter(record => record.paymentMethod === 'By Cash' && matchesShop(record))
+      .reduce((acc, record) => acc + record.amount, 0);
+  
     const totalBankBalanceAfterDeducting = totalBankBalance - records
-    .filter(record => record.paymentMethod === 'By Bank')
-    .reduce((acc, record) => acc + record.amount, 0);
+      .filter(record => record.paymentMethod === 'By Bank' && matchesShop(record))
+      .reduce((acc, record) => acc + record.amount, 0);
+  
     return {
       totalCash,
       totalPayments,
-      totalBribes,
+    
       remainingCash,
       totalUPIPayments,
       totalPurchaseStocks,
       totalBankBalance,
       totalExciseInspector,
-      totalDirectPurchase,totalBankBalanceAfterDeducting,
+      totalDirectPurchase,
+      totalBankBalanceAfterDeducting,
       totalSalary,
       totalRent,
       totalTransportation,
@@ -219,11 +198,13 @@ const Home = () => {
       totalPurchaseBalance,
     };
   };
+  
 
   const {
     totalCash,
     totalPayments,
-    remainingCash,totalBankBalanceAfterDeducting,
+    remainingCash,
+    totalBankBalanceAfterDeducting,
     totalUPIPayments,
     totalBankBalance,
     totalPurchaseStocks,
