@@ -152,12 +152,8 @@ const Home = () => {
     
     const totalCash = filteredBillHistory.reduce((acc, bill) => acc + bill.totalPaymentReceived, 0);//remainning cash 
     const totalBankBalance = totalPayments + totalUPIPayments;
-    const totalCashAfterDeducting = totalCash - records
-    .filter(record => record.paymentMethod === 'By Cash')
-    .reduce((acc, record) => acc + record.amount, 0);
-    const totalBankBalanceAfterDeducting = totalBankBalance - records
-    .filter(record => record.paymentMethod === 'By Bank')
-    .reduce((acc, record) => acc + record.amount, 0);
+
+    
     const totalExciseInspector = records
       .filter(
         (record) =>
@@ -199,7 +195,12 @@ const Home = () => {
 
     const totalBreakageCash = filteredBillHistory.reduce((acc, bill) => acc + (bill.breakageCash || 0), 0);
     const remainingCash = Math.max(0, totalCash - totalPayments);
-
+    const totalCashAfterDeducting = remainingCash - records
+    .filter(record => record.paymentMethod === 'By Cash')
+    .reduce((acc, record) => acc + record.amount, 0);
+    const totalBankBalanceAfterDeducting = totalBankBalance - records
+    .filter(record => record.paymentMethod === 'By Bank')
+    .reduce((acc, record) => acc + record.amount, 0);
     return {
       totalCash,
       totalPayments,
