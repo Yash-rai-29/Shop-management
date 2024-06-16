@@ -3,6 +3,7 @@ import axios from "axios";
 import ReactApexChart from "react-apexcharts";
 import { AuthContext } from "../context/AuthContext";
 import "tailwindcss/tailwind.css";
+import Modal from "../components/Modal"; // Import the Modal component
 
 const Home = () => {
   const { user, loading: userLoading } = useContext(AuthContext);
@@ -17,6 +18,10 @@ const Home = () => {
   const [pieData, setPieData] = useState({ series: [], options: {} });
   const [lineData, setLineData] = useState({ series: [], options: {} });
   const [brandData, setBrandData] = useState({ series: [], options: {} });
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalData, setModalData] = useState([]);
 
   useEffect(() => {
     if (userLoading) return;
@@ -73,13 +78,15 @@ const Home = () => {
 
   const filterData = () => {
     let filteredBillHistory = billHistory;
-
+  
+    // Apply shop filter
     if (selectedShop) {
       filteredBillHistory = filteredBillHistory.filter(
         (bill) => bill.shop.toLowerCase() === selectedShop.toLowerCase()
       );
     }
-
+  
+    // Apply date filter
     if (dateValue) {
       filteredBillHistory = filteredBillHistory.filter((bill) => {
         const billDate = new Date(bill.pdfDate);
@@ -104,14 +111,20 @@ const Home = () => {
         }
       });
     }
-
+  
+    console.log("Filtered Bill History:", filteredBillHistory); // Check filtered data
+  
     return filteredBillHistory;
   };
 
+  
+  
   const calculateTotals = () => {
     const filteredPayments = records.filter((record) => {
       const isReceivePayment = record.recordName === "Receive Payment";
-      const matchesShop = !selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase();
+      const matchesShop =
+        !selectedShop ||
+        record.shopName.toLowerCase() === selectedShop.toLowerCase();
   
       if (dateFilter === "month" && dateValue) {
         const paymentDate = new Date(record.date);
@@ -127,25 +140,34 @@ const Home = () => {
       return isReceivePayment && matchesShop;
     });
   
-
-  
     const filteredPurchaseStocks = records.filter(
       (record) =>
         record.recordName === "Purchase Stock" &&
-        (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
+        (!selectedShop ||
+          record.shopName.toLowerCase() === selectedShop.toLowerCase())
     );
   
-    const totalPayments = filteredPayments.reduce((acc, record) => acc + record.amount, 0);
-  
-    
+    const totalPayments = filteredPayments.reduce(
+      (acc, record) => acc + record.amount,
+      0
+    );
   
     const filteredBillHistory = filterData();
   
-    const totalPurchaseStocks = filteredPurchaseStocks.reduce((acc, record) => acc + record.amount, 0);
+    const totalPurchaseStocks = filteredPurchaseStocks.reduce(
+      (acc, record) => acc + record.amount,
+      0
+    );
   
-    const totalUPIPayments = filteredBillHistory.reduce((acc, bill) => acc + bill.upiPayment, 0);
+    const totalUPIPayments = filteredBillHistory.reduce(
+      (acc, bill) => acc + bill.upiPayment,
+      0
+    );
   
-    const totalCash = filteredBillHistory.reduce((acc, bill) => acc + bill.totalPaymentReceived, 0);
+    const totalCash = filteredBillHistory.reduce(
+      (acc, bill) => acc + bill.totalPaymentReceived,
+      0
+    );
   
     const totalBankBalance = totalPayments + totalUPIPayments;
   
@@ -153,7 +175,8 @@ const Home = () => {
       .filter(
         (record) =>
           record.recordName === "Excise Inspector Payment" &&
-          (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
+          (!selectedShop ||
+            record.shopName.toLowerCase() === selectedShop.toLowerCase())
       )
       .reduce((acc, record) => acc + record.amount, 0);
   
@@ -161,7 +184,8 @@ const Home = () => {
       .filter(
         (record) =>
           record.recordName === "Purchase Stock" &&
-          (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
+          (!selectedShop ||
+            record.shopName.toLowerCase() === selectedShop.toLowerCase())
       )
       .reduce((acc, record) => acc + record.amount, 0);
   
@@ -169,7 +193,8 @@ const Home = () => {
       .filter(
         (record) =>
           record.recordName === "Directly Purchase Stock" &&
-          (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
+          (!selectedShop ||
+            record.shopName.toLowerCase() === selectedShop.toLowerCase())
       )
       .reduce((acc, record) => acc + record.amount, 0);
   
@@ -177,33 +202,55 @@ const Home = () => {
       .filter(
         (record) =>
           record.recordName === "Salary" &&
-          (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
+          (!selectedShop ||
+            record.shopName.toLowerCase() === selectedShop.toLowerCase())
       )
       .reduce((acc, record) => acc + record.amount, 0);
   
-    const totalRent = filteredBillHistory.reduce((acc, bill) => acc + (bill.rent || 0), 0);
+    const totalRent = filteredBillHistory.reduce(
+      (acc, bill) => acc + (bill.rent || 0),
+      0
+    );
   
     const totalTransportation = filteredBillHistory.reduce(
       (acc, bill) => acc + (bill.transportation || 0),
       0
     );
   
-    const totalBreakageCash = filteredBillHistory.reduce((acc, bill) => acc + (bill.breakageCash || 0), 0);
+    const totalBreakageCash = filteredBillHistory.reduce(
+      (acc, bill) => acc + (bill.breakageCash || 0),
+      0
+    );
   
     const totalCashPayments = records
-      .filter(record => record.paymentMethod === 'By Cash' && record.recordName !== 'Receive Payment' && (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase()))
+      .filter(
+        (record) =>
+          record.paymentMethod === "By Cash" &&
+          record.recordName !== "Receive Payment" &&
+          (!selectedShop ||
+            record.shopName.toLowerCase() === selectedShop.toLowerCase())
+      )
       .reduce((acc, record) => acc + record.amount, 0);
   
-    const remainingCash = Math.max(0, totalCash - totalPayments - totalCashPayments);
+    const remainingCash = Math.max(
+      0,
+      totalCash - totalPayments - totalCashPayments
+    );
   
-    const totalBankBalanceAfterDeducting = totalBankBalance - records
-      .filter(record => record.paymentMethod === 'By Bank' && (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase()))
-      .reduce((acc, record) => acc + record.amount, 0);
+    const totalBankBalanceAfterDeducting =
+      totalBankBalance -
+      records
+        .filter(
+          (record) =>
+            record.paymentMethod === "By Bank" &&
+            (!selectedShop ||
+              record.shopName.toLowerCase() === selectedShop.toLowerCase())
+        )
+        .reduce((acc, record) => acc + record.amount, 0);
   
     return {
       totalCash,
       totalPayments,
-
       remainingCash,
       totalUPIPayments,
       totalPurchaseStocks,
@@ -219,8 +266,6 @@ const Home = () => {
     };
   };
   
-  
-
   const {
     totalCash,
     totalPayments,
@@ -230,7 +275,7 @@ const Home = () => {
     totalBankBalance,
     totalPurchaseStocks,
     totalExciseInspector,
-    
+
     totalDirectPurchase,
     totalSalary,
     totalRent,
@@ -238,6 +283,21 @@ const Home = () => {
     totalBreakageCash,
     totalPurchaseBalance,
   } = calculateTotals();
+
+  const handleRecordClick = (recordName) => {
+    setModalTitle(`Details for ${recordName}`);
+    const filteredData = records.filter(
+      (record) =>
+        record.recordName === recordName &&
+        (!selectedShop ||
+          record.shopName.toLowerCase() === selectedShop.toLowerCase()) &&
+        (dateFilter !== "month" || !dateValue ||
+          new Date(record.date).getMonth() === new Date(dateValue).getMonth())
+    );
+    setModalData(filteredData);
+    setIsModalOpen(true);
+  };
+  
 
   useEffect(() => {
     const { areaData, pieData, lineData, brandData } = prepareChartData();
@@ -270,8 +330,7 @@ const Home = () => {
       });
       return acc;
     }, {});
-  
-    
+
     const sortedDates = Object.keys(dailySales).sort(
       (a, b) => new Date(a) - new Date(b)
     );
@@ -458,9 +517,8 @@ const Home = () => {
             axisTicks: {
               show: false,
             },
-            
           },
-          
+
           yaxis: {
             show: true, // Ensure the y-axis is shown
             labels: {
@@ -610,7 +668,7 @@ const Home = () => {
       <div className="flex gap-4 w-auto justify-around m-4">
         <div className="flex flex-wrap gap-8 h-auto w-100%">
           <div className="bg-gray-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center rounded-md w-52">
-            <h3 className="text-xl font-semibold mb-2">Total Cash</h3>
+            <h3 className="text-xl font-semibold mb-2">Total Sales Cash</h3>
             <p className="text-xl">₹ {totalCash.toFixed(2)}</p>
           </div>
           <div className="bg-green-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center rounded-md w-52">
@@ -627,9 +685,10 @@ const Home = () => {
           </div>
           <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52 rounded-md">
             <h3 className="text-xl font-semibold mb-2">Total Bank Balance</h3>
-            <p className="text-xl">₹ {totalBankBalanceAfterDeducting.toFixed(2)}</p>
+            <p className="text-xl">
+              ₹ {totalBankBalanceAfterDeducting.toFixed(2)}
+            </p>
           </div>
-  
         </div>
       </div>
 
@@ -653,40 +712,68 @@ const Home = () => {
           style={{ width: "48%" }}
         >
           <h2 className="text-xl font-bold text-white mb-2 text-center">
-          Records Data
+            Records Data
           </h2>
-          <div className="flex flex-wrap w-full gap-6 ">     
-          <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52  rounded-md ">
-            <h3 className=" font-semibold text-lg mb-2">Total Purchase Stock</h3>
-            <p className="text-xl">₹ {totalPurchaseBalance.toFixed(2)}</p>
-          </div>
-          <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52  rounded-md ">
-            <h3 className=" font-semibold text-lg mb-2">Total Excise Inspector</h3>
-            <p className="text-xl">₹ {totalExciseInspector.toFixed(2)}</p>
-          </div>
-          <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md ">
-            <h3 className=" font-semibold text-lg mb-2">Total Direct Purchase </h3>
-            <p className="text-xl">₹ {totalDirectPurchase.toFixed(2)}</p>
-          </div>
-          <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md ">
-            <h3 className=" font-semibold text-lg mb-2">Total Salary </h3>
-            <p className="text-xl">₹ {totalSalary.toFixed(2)}</p>
-          </div>
-          <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md ">
-            <h3 className=" font-semibold text-lg mb-2">Total Rent </h3>
-            <p className="text-xl">₹ {totalRent.toFixed(2)}</p>
-          </div>
-          <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md ">
-            <h3 className=" font-semibold text-lg mb-2">Total Transportation </h3>
-            <p className="text-xl">₹ {totalTransportation.toFixed(2)}</p>
-          </div>
-          <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md ">
-            <h3 className=" font-semibold text-lg mb-2">Total BreakageCash </h3>
-            <p className="text-xl">₹ {totalBreakageCash.toFixed(2)}</p>
-          </div>
-          </div>
+          <div className="flex flex-wrap w-full gap-6 ">
+            <div
+              className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52 rounded-md "
+              onClick={() => handleRecordClick("Purchase Stock")}
+            >
+              <h3 className="font-semibold text-lg mb-2">
+                Total Purchase Stock
+              </h3>
+              <p className="text-xl">₹ {totalPurchaseBalance.toFixed(2)}</p>
+            </div>
+            <div
+              className="bg-rose-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52 rounded-md "
+              onClick={() => handleRecordClick("Excise Inspector Payment")}
+            >
+              <h3 className="font-semibold text-lg mb-2">
+                Total Excise Inspector
+              </h3>
+              <p className="text-xl">₹ {totalExciseInspector.toFixed(2)}</p>
+            </div>
+            <div
+              className="bg-teal-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md "
+              onClick={() => handleRecordClick("Directly Purchase Stock")}
+            >
+              <h3 className="font-semibold text-lg mb-2">
+                Total Direct Purchase
+              </h3>
+              <p className="text-xl">₹ {totalDirectPurchase.toFixed(2)}</p>
+            </div>
+            <div
+              className="bg-emerald-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md "
+              onClick={() => handleRecordClick("Salary")}
+            >
+              <h3 className="font-semibold text-lg mb-2">Total Salary</h3>
+              <p className="text-xl">₹ {totalSalary.toFixed(2)}</p>
+            </div>
 
-     
+            <div className="bg-indigo-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md ">
+              <h3 className=" font-semibold text-lg mb-2">Total Rent </h3>
+              <p className="text-xl">₹ {totalRent.toFixed(2)}</p>
+            </div>
+            <div className="bg-amber-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md ">
+              <h3 className=" font-semibold text-lg mb-2">
+                Total Transportation{" "}
+              </h3>
+              <p className="text-xl">₹ {totalTransportation.toFixed(2)}</p>
+            </div>
+            <div className="bg-yellow-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md ">
+              <h3 className=" font-semibold text-lg mb-2">
+                Total BreakageCash{" "}
+              </h3>
+              <p className="text-xl">₹ {totalBreakageCash.toFixed(2)}</p>
+            </div>
+            <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={modalTitle}
+        data={modalData}
+      />
+
+          </div>
         </div>
         <div
           className="bg-gradient-to-r from-indigo-800 via-indigo-700 to-indigo-900 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 rounded-md m-3"
