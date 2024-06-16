@@ -170,6 +170,51 @@ const Home = () => {
 
     const totalBankBalance = totalPayments + totalUPIPayments;
 
+    // New totals for the additional records
+    const totalExciseInspector = records
+      .filter(
+        (record) =>
+          record.recordName === "Excise Inspector Payment" &&
+          (!selectedShop ||
+            record.shopName.toLowerCase() === selectedShop.toLowerCase())
+      )
+      .reduce((acc, record) => acc + record.amount, 0);
+
+    const totalDirectPurchase = records
+      .filter(
+        (record) =>
+          record.recordName === "Directly Purchase Stock" &&
+          (!selectedShop ||
+            record.shopName.toLowerCase() === selectedShop.toLowerCase())
+      )
+      .reduce((acc, record) => acc + record.amount, 0);
+
+    const totalSalary = records
+      .filter(
+        (record) =>
+          record.recordName === "Salary" &&
+          (!selectedShop ||
+            record.shopName.toLowerCase() === selectedShop.toLowerCase())
+      )
+      .reduce((acc, record) => acc + record.amount, 0);
+
+      const totalRent = filteredBillHistory.reduce(
+        (acc, bill) => acc + (bill.rent || 0),
+        0
+      );
+  
+      const totalTransportation = filteredBillHistory.reduce(
+        (acc, bill) => acc + (bill.transportation || 0),
+        0
+      );
+  
+      const totalBreakageCash = filteredBillHistory.reduce(
+        (acc, bill) => acc + (bill.breakageCash || 0),
+        0
+      );
+  
+  
+
     return {
       totalCash,
       totalPayments,
@@ -178,6 +223,11 @@ const Home = () => {
       totalUPIPayments,
       totalPurchaseStocks,
       totalBankBalance,
+      totalExciseInspector,
+      totalDirectPurchase,
+      totalSalary,   totalRent,
+      totalTransportation,
+      totalBreakageCash
     };
   };
 
@@ -188,8 +238,13 @@ const Home = () => {
     totalUPIPayments,
     totalBankBalance,
     totalPurchaseStocks,
+    totalExciseInspector,
+    totalDirectPurchase,
+    totalSalary,
+    totalRent,
+    totalTransportation,
+    totalBreakageCash,
   } = calculateTotals();
-
   useEffect(() => {
     const { areaData, pieData, lineData, brandData } = prepareChartData();
     setAreaData(areaData);
@@ -221,7 +276,8 @@ const Home = () => {
       });
       return acc;
     }, {});
-
+  
+    
     const sortedDates = Object.keys(dailySales).sort(
       (a, b) => new Date(a) - new Date(b)
     );
@@ -408,7 +464,9 @@ const Home = () => {
             axisTicks: {
               show: false,
             },
+            
           },
+          
           yaxis: {
             show: true, // Ensure the y-axis is shown
             labels: {
@@ -600,6 +658,46 @@ const Home = () => {
             type="line"
             height={350}
           />
+        </div>
+        <div
+          className="bg-gradient-to-r from-indigo-800 via-indigo-700 to-indigo-900 p-4 w-full shadow-md hover:shadow-lg transition-shadow duration-300 rounded-md m-3"
+          style={{ width: "48%" }}
+        >
+          <h2 className="text-xl font-bold text-white mb-2 text-center">
+          Records Data
+          </h2>
+          <div className="flex flex-wrap w-full gap-6 ">     
+          <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52  rounded-md ">
+            <h3 className=" font-semibold text-lg mb-2">Total Purchase Stock</h3>
+            <p className="text-xl">₹ {totalPurchaseStocks.toFixed(2)}</p>
+          </div>
+          <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52  rounded-md ">
+            <h3 className=" font-semibold text-lg mb-2">Total Excise Inspector</h3>
+            <p className="text-xl">₹ {totalExciseInspector.toFixed(2)}</p>
+          </div>
+          <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md ">
+            <h3 className=" font-semibold text-lg mb-2">Total Direct Purchase </h3>
+            <p className="text-xl">₹ {totalDirectPurchase.toFixed(2)}</p>
+          </div>
+          <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md ">
+            <h3 className=" font-semibold text-lg mb-2">Total Salary </h3>
+            <p className="text-xl">₹ {totalSalary.toFixed(2)}</p>
+          </div>
+          <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md ">
+            <h3 className=" font-semibold text-lg mb-2">Total Rent </h3>
+            <p className="text-xl">₹ {totalRent.toFixed(2)}</p>
+          </div>
+          <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md ">
+            <h3 className=" font-semibold text-lg mb-2">Total Transportation </h3>
+            <p className="text-xl">₹ {totalTransportation.toFixed(2)}</p>
+          </div>
+          <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md ">
+            <h3 className=" font-semibold text-lg mb-2">Total BreakageCash </h3>
+            <p className="text-xl">₹ {totalBreakageCash.toFixed(2)}</p>
+          </div>
+          </div>
+
+     
         </div>
         <div
           className="bg-gradient-to-r from-indigo-800 via-indigo-700 to-indigo-900 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 rounded-md m-3"
