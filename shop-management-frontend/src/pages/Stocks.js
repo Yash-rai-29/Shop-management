@@ -15,6 +15,7 @@ const Stocks = () => {
   const [canteenCash, setCanteenCash] = useState(0);
   const [breakageCash, setBreakageCash] = useState(0);
   const [rateDiff, setRateDiff] = useState(0);
+  const [transportation, setTransportation] = useState(0);
   const [rent, setRent] = useState(0);
   const [salary, setSalary] = useState(0);
   const [shop, setShop] = useState("Vamanpui");
@@ -26,7 +27,7 @@ const Stocks = () => {
   const [totalBeerSale, setTotalBeerSale] = useState(0);
   const { user, loading: userLoading } = useContext(AuthContext);
   const [pdfDate, setPdfDate] = useState(new Date().toISOString().substring(0, 10));
-  
+
   useEffect(() => {
     const fetchStocks = async () => {
       if (userLoading) return;
@@ -50,6 +51,7 @@ const Stocks = () => {
         setSalary(0);
         setRent(0);
         setRateDiff(0);
+        setTransportation(0);
         setNewQuantities({});
       } catch (error) {
         setError("Error fetching stocks");
@@ -102,7 +104,7 @@ const Stocks = () => {
 
       const updatedStocks = await Promise.all(
 
-        
+
         stocks.map(async (stock) => {
           const newQuantity = newQuantities[stock._id] !== undefined ? Number(newQuantities[stock._id]) : stock.lastQuantity;
           if (isNaN(newQuantity)) return stock;
@@ -119,7 +121,7 @@ const Stocks = () => {
 
       await generateInvoice(updatedStocks);
       // Send data to backend to store in bill history
-      const totalPaymentReceived = totalSale + canteenCash - breakageCash - discount - salary - upiPayment - rent + rateDiff;
+      const totalPaymentReceived = totalSale + canteenCash - breakageCash - discount - salary - upiPayment - rent + rateDiff-transportation;
       await axios.post(`${process.env.REACT_APP_API_URL}/billHistory`, {
         updatedStocks,
         pdfDate,
@@ -129,10 +131,11 @@ const Stocks = () => {
         breakageCash,
         canteenCash,
         totalDesiSale,
-        totalBeerSale, 
+        totalBeerSale,
         salary,
         rateDiff,
         rent,
+        transportation,
         shop,
         totalPaymentReceived
       });
@@ -149,21 +152,21 @@ const Stocks = () => {
   const generateInvoice = async (stocks) => {
     const doc = new jsPDF();
     const invoiceDate = new Date(pdfDate).toLocaleString(); // Properly format invoice date
-  
+
     const now = new Date(); // Create a new Date object
     const datePart = now.toISOString().split("T")[0].replace(/-/g, ""); // Generate date part
-  
-    const totalPaymentReceived = totalSale + canteenCash - breakageCash - discount - salary - upiPayment-rent+rateDiff;
-  
+
+    const totalPaymentReceived = totalSale + canteenCash - breakageCash - discount - salary - upiPayment - rent + rateDiff-transportation;
+
     const invoiceNumber = `Inv-${datePart}`; // Dynamic invoice number
-  
+
     // Add the Roboto font
     doc.addFileToVFS('Roboto-Regular.ttf', robotoRegularBase64);
     doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
-  
+
     // Use the Roboto font
     doc.setFont('Roboto');
-  
+
     doc.setFontSize(16);
     doc.text("Om Ganeshay Namah", doc.internal.pageSize.getWidth() / 2, 10, {
       align: "center",
@@ -175,7 +178,7 @@ const Stocks = () => {
     doc.setFontSize(12);
     doc.text(`Invoice Number: ${invoiceNumber}`, 14, 30);
     doc.text(`Date: ${invoiceDate}`, 14, 40);
-  
+
     autoTable(doc, {
       startY: 50,
       head: [
@@ -202,15 +205,15 @@ const Stocks = () => {
         const pageHeight = doc.internal.pageSize.height;
         const finalY = data.cursor.y;
         const margin = 10;
-  
+
         if (finalY + margin > pageHeight) {
           doc.addPage();
         }
       }
     });
-  
+
     const finalY = doc.lastAutoTable.finalY + 10;
-  
+
     const addTextWithNewPage = (text, y) => {
       const pageHeight = doc.internal.pageSize.height;
       if (y > pageHeight - 10) {
@@ -220,7 +223,7 @@ const Stocks = () => {
       doc.text(text, 14, y);
       return y + 10; // Increment y position for the next line
     };
-  
+
     let yPosition = finalY;
     yPosition = addTextWithNewPage(`Total Payment: ₹${totalSale.toFixed(2)}`, yPosition);
     yPosition = addTextWithNewPage(`Total Discount: ₹${discount.toFixed(2)}`, yPosition);
@@ -230,16 +233,17 @@ const Stocks = () => {
     yPosition = addTextWithNewPage(`Breakage Cash: ₹${breakageCash.toFixed(2)}`, yPosition);
     yPosition = addTextWithNewPage(`Rate Diff : ₹${rateDiff.toFixed(2)}`, yPosition);
     yPosition = addTextWithNewPage(`Rent : ₹${rent.toFixed(2)}`, yPosition);
+    yPosition = addTextWithNewPage(`Transportation : ₹${transportation.toFixed(2)}`, yPosition);
     yPosition = addTextWithNewPage(`Total Cash: ₹${totalPaymentReceived.toFixed(2)}`, yPosition);
     yPosition = addTextWithNewPage(`Total Desi Sale: ₹${totalDesiSale.toFixed(2)}`, yPosition);
     yPosition = addTextWithNewPage(`Total Beer Sale: ₹${totalBeerSale.toFixed(2)}`, yPosition);
-  
+
     const pdfBlob = doc.output("blob");
-  
+
     try {
       const formData = new FormData();
       formData.append('file', pdfBlob, `invoice_${new Date().toISOString()}.pdf`);
-  
+
       await axios.post(
         `${process.env.REACT_APP_API_URL}/invoices`,
         formData,
@@ -253,10 +257,10 @@ const Stocks = () => {
       setError("Error saving invoice");
       console.error(error);
     }
-  
+
     doc.save(`Invoice-${invoiceDate}.pdf`); // Save with dynamic invoice number
   };
-  
+
 
 
   const openModal = () => {
@@ -332,10 +336,10 @@ const Stocks = () => {
                           setNewQuantities({
                             ...newQuantities,
                             [stock._id]: e.target.value === "" ? stock.lastQuantity : Number(e.target.value),
-                         })
+                          })
                         }
                         onWheel={(e) => e.preventDefault()}
-  onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
+                        onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
                         className="w-full border px-2 py-1"
                       />
                     </td>
@@ -372,14 +376,15 @@ const Stocks = () => {
                   <p className="font-semibold">Rate Diff Cash: <span className="text-green-500">₹{rateDiff.toFixed(2)}</span></p>
                   <p className="font-semibold">Breakage Cash: <span className="text-red-500">₹{breakageCash.toFixed(2)}</span></p>
                   <p className="font-semibold">Rent: <span className="text-red-500">₹{rent.toFixed(2)}</span></p>
+                  <p className="font-semibold">Transportation: <span className="text-red-500">₹{transportation.toFixed(2)}</span></p>
                   <p className="font-semibold">Salary: <span className="text-red-500">₹{salary.toFixed(2)}</span></p>
-                  <p className="font-semibold">Total Cash : ₹{(totalSale + canteenCash - breakageCash - discount - salary - upiPayment-rent+rateDiff).toFixed(2)}</p>
-                <p className="font-semibold"> Total Desi Sale: ₹{totalDesiSale.toFixed(2)}</p>
-                <p className="font-semibold"> Total Beer Sale: ₹{totalBeerSale.toFixed(2)}</p>
-                
-                
-                
-                
+                  <p className="font-semibold">Total Cash : ₹{(totalSale + canteenCash - breakageCash - discount - salary - upiPayment - rent + rateDiff-transportation).toFixed(2)}</p>
+                  <p className="font-semibold"> Total Desi Sale: ₹{totalDesiSale.toFixed(2)}</p>
+                  <p className="font-semibold"> Total Beer Sale: ₹{totalBeerSale.toFixed(2)}</p>
+
+
+
+
                 </div>
                 <div className="bg-gray-200 p-4 rounded shadow w-1/2">
                   <label className="block mb-2">Discount (₹):</label>
@@ -389,7 +394,7 @@ const Stocks = () => {
                     onChange={(e) => setDiscount(Number(e.target.value))}
                     className="border p-2 w-full rounded"
                     onWheel={(e) => e.preventDefault()}
-  onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
+                    onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
                   />
                   <label className="block mb-2 mt-2">Salary (₹):</label>
                   <input
@@ -398,7 +403,7 @@ const Stocks = () => {
                     onChange={(e) => setSalary(Number(e.target.value))}
                     className="border p-2 w-full rounded"
                     onWheel={(e) => e.preventDefault()}
-  onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
+                    onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
                   />
                   <label className="block mb-2 mt-2">UPI Payment (₹):</label>
                   <input
@@ -407,7 +412,7 @@ const Stocks = () => {
                     onChange={(e) => setUpiPayment(Number(e.target.value))}
                     className="border p-2 w-full rounded"
                     onWheel={(e) => e.preventDefault()}
-  onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
+                    onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
                   />
                   <label className="block mb-2 mt-2">Canteen Cash (₹):</label>
                   <input
@@ -416,7 +421,7 @@ const Stocks = () => {
                     onChange={(e) => setCanteenCash(Number(e.target.value))}
                     className="border p-2 w-full rounded"
                     onWheel={(e) => e.preventDefault()}
-  onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
+                    onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
                   />
                   <label className="block mb-2 mt-2">Breakage Cash (₹):</label>
                   <input
@@ -425,25 +430,37 @@ const Stocks = () => {
                     onChange={(e) => setBreakageCash(Number(e.target.value))}
                     className="border p-2 w-full rounded"
                     onWheel={(e) => e.preventDefault()}
-  onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
+                    onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
                   />
-                    <label className="block mb-2 mt-2">Rate Diffrence (₹):</label>
+                  <label className="block mb-2 mt-2">Rate Diffrence (₹):</label>
                   <input
                     type="number"
                     value={rateDiff}
                     onChange={(e) => setRateDiff(Number(e.target.value))}
                     className="border p-2 w-full rounded"
                     onWheel={(e) => e.preventDefault()}
-  onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
+                    onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
                   />
-                    <label className="block mb-2 mt-2">Rent (₹):</label>
+
+                  <label className="block mb-2 mt-2">transportation Expense (₹):</label>
+                  <input
+                    type="number"
+                    value={transportation}
+                    onChange={(e) => setTransportation(Number(e.target.value))}
+                    className="border p-2 w-full rounded"
+                    onWheel={(e) => e.preventDefault()}
+                    onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
+                  />
+
+
+                  <label className="block mb-2 mt-2">Rent (₹):</label>
                   <input
                     type="number"
                     value={rent}
                     onChange={(e) => setRent(Number(e.target.value))}
                     className="border p-2 w-full rounded"
                     onWheel={(e) => e.preventDefault()}
-  onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
+                    onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
                   />
                 </div>
               </div>
