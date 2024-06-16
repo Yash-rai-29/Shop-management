@@ -109,32 +109,37 @@ const Home = () => {
   };
 
   const calculateTotals = () => {
-    const matchesShop = (record) =>
-      !selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase();
-  
     const filteredPayments = records.filter((record) => {
       const isReceivePayment = record.recordName === "Receive Payment";
+      const matchesShop = !selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase();
+  
       if (dateFilter === "month" && dateValue) {
         const paymentDate = new Date(record.date);
         const selectedDate = new Date(dateValue);
         return (
           isReceivePayment &&
-          matchesShop(record) &&
+          matchesShop &&
           paymentDate.getMonth() === selectedDate.getMonth() &&
           paymentDate.getFullYear() === selectedDate.getFullYear()
         );
       }
-      return isReceivePayment && matchesShop(record);
+  
+      return isReceivePayment && matchesShop;
     });
   
+
+  
     const filteredPurchaseStocks = records.filter(
-      (record) => record.recordName === "Purchase Stock" && matchesShop(record)
+      (record) =>
+        record.recordName === "Purchase Stock" &&
+        (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
     );
   
     const totalPayments = filteredPayments.reduce((acc, record) => acc + record.amount, 0);
   
+    
   
-    const filteredBillHistory = filterData().filter(matchesShop);
+    const filteredBillHistory = filterData();
   
     const totalPurchaseStocks = filteredPurchaseStocks.reduce((acc, record) => acc + record.amount, 0);
   
@@ -145,19 +150,35 @@ const Home = () => {
     const totalBankBalance = totalPayments + totalUPIPayments;
   
     const totalExciseInspector = records
-      .filter((record) => record.recordName === "Excise Inspector Payment" && matchesShop(record))
+      .filter(
+        (record) =>
+          record.recordName === "Excise Inspector Payment" &&
+          (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
+      )
       .reduce((acc, record) => acc + record.amount, 0);
   
     const totalPurchaseBalance = records
-      .filter((record) => record.recordName === "Purchase Stock" && matchesShop(record))
+      .filter(
+        (record) =>
+          record.recordName === "Purchase Stock" &&
+          (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
+      )
       .reduce((acc, record) => acc + record.amount, 0);
   
     const totalDirectPurchase = records
-      .filter((record) => record.recordName === "Directly Purchase Stock" && matchesShop(record))
+      .filter(
+        (record) =>
+          record.recordName === "Directly Purchase Stock" &&
+          (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
+      )
       .reduce((acc, record) => acc + record.amount, 0);
   
     const totalSalary = records
-      .filter((record) => record.recordName === "Salary" && matchesShop(record))
+      .filter(
+        (record) =>
+          record.recordName === "Salary" &&
+          (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase())
+      )
       .reduce((acc, record) => acc + record.amount, 0);
   
     const totalRent = filteredBillHistory.reduce((acc, bill) => acc + (bill.rent || 0), 0);
@@ -169,20 +190,20 @@ const Home = () => {
   
     const totalBreakageCash = filteredBillHistory.reduce((acc, bill) => acc + (bill.breakageCash || 0), 0);
   
-    const remainingCash = Math.max(0, totalCash - totalPayments);
-  
-    const totalCashAfterDeducting = remainingCash - records
-      .filter(record => record.paymentMethod === 'By Cash' && matchesShop(record))
+    const totalCashPayments = records
+      .filter(record => record.paymentMethod === 'By Cash' && record.recordName !== 'Receive Payment' && (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase()))
       .reduce((acc, record) => acc + record.amount, 0);
   
+    const remainingCash = Math.max(0, totalCash - totalPayments - totalCashPayments);
+  
     const totalBankBalanceAfterDeducting = totalBankBalance - records
-      .filter(record => record.paymentMethod === 'By Bank' && matchesShop(record))
+      .filter(record => record.paymentMethod === 'By Bank' && (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase()))
       .reduce((acc, record) => acc + record.amount, 0);
   
     return {
       totalCash,
       totalPayments,
-    
+
       remainingCash,
       totalUPIPayments,
       totalPurchaseStocks,
@@ -193,11 +214,11 @@ const Home = () => {
       totalSalary,
       totalRent,
       totalTransportation,
-      totalCashAfterDeducting,
       totalBreakageCash,
       totalPurchaseBalance,
     };
   };
+  
   
 
   const {
@@ -209,7 +230,7 @@ const Home = () => {
     totalBankBalance,
     totalPurchaseStocks,
     totalExciseInspector,
-    totalCashAfterDeducting,
+    
     totalDirectPurchase,
     totalSalary,
     totalRent,
@@ -602,7 +623,7 @@ const Home = () => {
           </div>
           <div className="bg-purple-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center rounded-md w-52">
             <h3 className="text-xl font-semibold mb-2">Remaining Cash</h3>
-            <p className="text-xl">₹ {totalCashAfterDeducting.toFixed(2)}</p>
+            <p className="text-xl">₹ {remainingCash.toFixed(2)}</p>
           </div>
           <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52 rounded-md">
             <h3 className="text-xl font-semibold mb-2">Total Bank Balance</h3>
