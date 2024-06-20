@@ -1,6 +1,6 @@
-shop-management-backend/.env
-shop-management-backend/node_modules
-shop-management-frontend/node_modules
+backend/.env
+backend/node_modules
+frontend/node_modules
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
@@ -24,4 +24,4 @@ shop-management-frontend/node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-shop-management-frontend/.env
+frontend/.env
