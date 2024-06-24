@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
+import jsPDF from 'jspdf';
 import { AuthContext } from "../context/AuthContext";
+import { robotoRegularBase64 } from "./fonts"; // Adjust the path as necessary
+import autoTable from "jspdf-autotable";
 
 const BillHistory = () => {
   const [billHistory, setBillHistory] = useState([]);
@@ -12,7 +15,6 @@ const BillHistory = () => {
   const { user, loading: userLoading } = useContext(AuthContext);
 
   useEffect(() => {
-    // Set the default value of the month to the current month
     const currentMonth = new Date().toISOString().substring(0, 7);
     setMonth(currentMonth);
   }, []);
@@ -80,9 +82,95 @@ const BillHistory = () => {
   };
 
   const filteredBillHistory = filterBillHistory(billHistory, shop, month);
+
   const filteredRecords = filterRecords(records, shop, month);
 
   const totalCashInShop = filteredBillHistory.reduce((acc, bill) => acc + bill.totalPaymentReceived, 0);
+
+  const downloadInvoice = async (bill) => {
+    try {
+      const doc = new jsPDF();
+  
+      // Add the Roboto font
+      doc.addFileToVFS('Roboto-Regular.ttf', robotoRegularBase64);
+      doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
+      doc.setFont('Roboto');
+  
+      // Title and shop name
+      doc.setFontSize(16);
+      doc.text("Om Ganeshay Namah", doc.internal.pageSize.getWidth() / 2, 10, { align: "center" });
+      doc.setFontSize(14);
+      doc.text(`Shop Name: ${bill.shop}`, doc.internal.pageSize.getWidth() / 2, 20, { align: "center" });
+  
+      // Invoice details
+      doc.setFontSize(12);
+      const startY = 30; // Starting Y position for invoice details
+      doc.text(`Invoice Number: ${bill._id}`, 14, startY);
+      doc.text(`Date: ${new Date(bill.pdfDate).toLocaleDateString()}`, 14, startY + 10);
+  
+      // AutoTable for stock details
+      autoTable(doc, {
+        startY: startY + 20, // Adjusted startY to ensure there's no overlap
+        head: [["Product", "Size", "Open Stock", "Closing Stock", "Quantity Sold", "Price", "Total Sale (₹)"]],
+        body: bill.updatedStocks.map(stock => [
+          stock.product,
+          stock.size,
+          stock.lastQuantity,
+          stock.quantity,
+          stock.lastQuantity - stock.quantity,
+          stock.price,
+          ((stock.lastQuantity - stock.quantity) * stock.price).toFixed(2)
+        ]),
+        didDrawPage: (data) => {
+          if (data.pageNumber === 1) {
+            // Add header row on the first page
+            doc.setTextColor(0);
+            doc.setFontSize(12);
+            doc.text("Stock Details", data.settings.margin.left, startY + 10);
+          }
+        },
+      });
+  
+      // Function to add text and handle page breaks
+      const addTextWithNewPage = (text, y) => {
+        const pageHeight = doc.internal.pageSize.height;
+        if (y > pageHeight - 10) {
+          doc.addPage();
+          y = 10; // Reset y position for the new page
+        }
+        doc.setFontSize(12); // Set font size explicitly
+        doc.text(text, 14, y);
+        return y + 10; // Increment y position for the next line
+      };
+  
+      // Footer details
+      let yPosition = doc.lastAutoTable.finalY + 20; // Start after the table with more spacing
+      const footerDetails = [
+        { label: "Total Sales", value: bill.totalSale },
+        { label: "UPI Payment", value: bill.upiPayment },
+        { label: "Discount", value: bill.discount },
+        { label: "Desi Sales", value: bill.totalDesiSale },
+        { label: "Beer Sales", value: bill.totalBeerSale },
+        { label: "Breakage Cash", value: bill.breakageCash },
+        { label: "Canteen Cash", value: bill.canteenCash },
+        { label: "Salary", value: bill.salary },
+        { label: "Rate Diff", value: bill.rateDiff },
+        { label: "Rent", value: bill.rent },
+        { label: "Transportation", value: bill.transportation },
+        { label: "Total Cash", value: bill.totalPaymentReceived },
+      ];
+  
+      footerDetails.forEach(detail => {
+        const value = detail.value || 0; // Default to 0 if value is undefined or null
+        yPosition = addTextWithNewPage(`${detail.label}: ₹${value.toFixed(2)}`, yPosition);
+      });
+  
+      // Save the PDF with a unique name
+      doc.save(`invoice-${bill._id}.pdf`);
+    } catch (error) {
+      console.error("Error generating invoice:", error);
+    }
+  };
 
   return (
     <div className="p-6 bg-blue-300 min-h-screen text-gray-900">
@@ -136,6 +224,7 @@ const BillHistory = () => {
                   <th className="py-2 px-4 border">Transportation</th>
                   <th className="py-2 px-4 border">Total Cash</th>
                   <th className="py-2 px-4 border">Shop</th>
+                  <th className="py-2 px-4 border">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -155,6 +244,14 @@ const BillHistory = () => {
                     <td className="py-2 px-4 border">{formatCurrency(bill.transportation)}</td>
                     <td className="py-2 px-4 border">{formatCurrency(bill.totalPaymentReceived)}</td>
                     <td className="py-2 px-4 border">{bill.shop}</td>
+                    <td className="py-2 px-4 border">
+                      <button
+                        onClick={() => downloadInvoice(bill)}
+                        className="text-blue-500 hover:underline"
+                      >
+                        Download
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

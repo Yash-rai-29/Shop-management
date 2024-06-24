@@ -44,7 +44,7 @@ const TransferStock = () => {
     }
 
     try {
-      const res = await axios.post("https://shop-management-im3g.onrender.com/api/stocks/transfer", {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL}/stocks/transfer`, {
         stockId: selectedStock._id,
         fromShop,
         toShop,
