@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
-import jsPDF from "jspdf";
-import "jspdf-autotable";
-import autoTable from "jspdf-autotable";
 import { AuthContext } from "../context/AuthContext";
-import { robotoRegularBase64 } from "./fonts"; // Adjust the path as necessary
 
 const Stocks = () => {
   const [stocks, setStocks] = useState([]);
@@ -101,166 +97,50 @@ const Stocks = () => {
     setLoading(true);
 
     try {
+        // Prepare the payload for both stock updates and bill history
+        const updatedStocks = await Promise.all(
+            stocks.map(async (stock) => {
+                const newQuantity = newQuantities[stock._id] !== undefined ? Number(newQuantities[stock._id]) : stock.lastQuantity;
+                if (isNaN(newQuantity)) return stock;
 
-      const updatedStocks = await Promise.all(
+                return {
+                    ...stock,
+                    newQuantity,
+                };
+            })
+        );
 
-        stocks.map(async (stock) => {
-          const newQuantity = newQuantities[stock._id] !== undefined ? Number(newQuantities[stock._id]) : stock.lastQuantity;
-          if (isNaN(newQuantity)) return stock;
+        const totalPaymentReceived = totalSale + canteenCash - breakageCash - discount - salary - upiPayment - rent + rateDiff - transportation;
 
-          const res = await axios.put(
-            `${process.env.REACT_APP_API_URL}/stocks/${stock._id}`,
-            { quantity: newQuantity }
-          );
+        const response = await axios.put(`${process.env.REACT_APP_API_URL}/transactions/updateStocksAndBill`, {
+            updatedStocks,
+            pdfDate,
+            totalSale,
+            upiPayment,
+            discount,
+            breakageCash,
+            canteenCash,
+            totalDesiSale,
+            totalBeerSale,
+            salary,
+            shop,
+            rent,
+            rateDiff,
+            totalPaymentReceived,
+            transportation,
+        });
 
-          return { ...res.data, lastQuantity: stock.lastQuantity, soldQuantity: stock.lastQuantity - newQuantity };
-        })
-      );
-      setStocks(updatedStocks);
-
-      await generateInvoice(updatedStocks);
-      // Send data to backend to store in bill history
-      const totalPaymentReceived = totalSale + canteenCash - breakageCash - discount - salary - upiPayment - rent + rateDiff-transportation;
-      await axios.post(`${process.env.REACT_APP_API_URL}/billHistory`, {
-        updatedStocks,
-        pdfDate,
-        totalSale,
-        upiPayment,
-        discount,
-        breakageCash,
-        canteenCash,
-        totalDesiSale,
-        totalBeerSale,
-        salary,
-        rateDiff,
-        rent,
-        transportation,
-        shop,
-        totalPaymentReceived
-      });
-
-      setError("");
+        setStocks(updatedStocks.map(stock => ({ ...stock, lastQuantity: stock.newQuantity, soldQuantity: stock.lastQuantity - stock.newQuantity })));
+        setError("");
     } catch (error) {
-      setError("Error updating stocks");
-      console.error(error);
+        setError("Error updating stocks and storing bill history");
+        console.error(error);
     } finally {
-      setLoading(false);
-      setSummaryModalIsOpen(false); // Close the modal after updating
+        setLoading(false);
+        setSummaryModalIsOpen(false);
     }
-  };
-  const generateInvoice = async (stocks) => {
-    const doc = new jsPDF();
-    const invoiceDate = new Date(pdfDate).toLocaleString(); // Properly format invoice date
-
-    const now = new Date(); // Create a new Date object
-    const datePart = now.toISOString().split("T")[0].replace(/-/g, ""); // Generate date part
-
-    const totalPaymentReceived = totalSale + canteenCash - breakageCash - discount - salary - upiPayment - rent + rateDiff-transportation;
-
-    const invoiceNumber = `Inv-${datePart}`; // Dynamic invoice number
-
-    // Add the Roboto font
-    doc.addFileToVFS('Roboto-Regular.ttf', robotoRegularBase64);
-    doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
-
-    // Use the Roboto font
-    doc.setFont('Roboto');
-
-    doc.setFontSize(16);
-    doc.text("Om Ganeshay Namah", doc.internal.pageSize.getWidth() / 2, 10, {
-      align: "center",
-    });
-    doc.setFontSize(14);
-    doc.text(`Shop Name : ${shop}`, doc.internal.pageSize.getWidth() / 2, 20, {
-      align: "center",
-    });
-    doc.setFontSize(12);
-    doc.text(`Invoice Number: ${invoiceNumber}`, 14, 30);
-    doc.text(`Date: ${invoiceDate}`, 14, 40);
-
-    autoTable(doc, {
-      startY: 50,
-      head: [
-        [
-          "Product",
-          "Size",
-          "Open Stock",
-          "Closing Stock",
-          "Quantity Sold",
-          "Price",
-          "Total Sale (₹)",
-        ],
-      ],
-      body: stocks.map((stock) => [
-        stock.product,
-        stock.size,
-        stock.lastQuantity,
-        stock.quantity,
-        stock.lastQuantity - stock.quantity,
-        stock.price,
-        ((stock.lastQuantity - stock.quantity) * stock.price).toFixed(2),
-      ]),
-      didDrawPage: (data) => {
-        const pageHeight = doc.internal.pageSize.height;
-        const finalY = data.cursor.y;
-        const margin = 10;
-
-        if (finalY + margin > pageHeight) {
-          doc.addPage();
-        }
-      }
-    });
-
-    const finalY = doc.lastAutoTable.finalY + 10;
-
-    const addTextWithNewPage = (text, y) => {
-      const pageHeight = doc.internal.pageSize.height;
-      if (y > pageHeight - 10) {
-        doc.addPage();
-        y = 10; // Reset y position for the new page
-      }
-      doc.text(text, 14, y);
-      return y + 10; // Increment y position for the next line
-    };
-
-    let yPosition = finalY;
-    yPosition = addTextWithNewPage(`Total Payment: ₹${totalSale.toFixed(2)}`, yPosition);
-    yPosition = addTextWithNewPage(`Total Discount: ₹${discount.toFixed(2)}`, yPosition);
-    yPosition = addTextWithNewPage(`Total Salary: ₹${salary.toFixed(2)}`, yPosition);
-    yPosition = addTextWithNewPage(`Total UPI Payment: ₹${upiPayment.toFixed(2)}`, yPosition);
-    yPosition = addTextWithNewPage(`Canteen Cash: ₹${canteenCash.toFixed(2)}`, yPosition);
-    yPosition = addTextWithNewPage(`Breakage Cash: ₹${breakageCash.toFixed(2)}`, yPosition);
-    yPosition = addTextWithNewPage(`Rate Diff : ₹${rateDiff.toFixed(2)}`, yPosition);
-    yPosition = addTextWithNewPage(`Rent : ₹${rent.toFixed(2)}`, yPosition);
-    yPosition = addTextWithNewPage(`Transportation : ₹${transportation.toFixed(2)}`, yPosition);
-    yPosition = addTextWithNewPage(`Total Cash: ₹${totalPaymentReceived.toFixed(2)}`, yPosition);
-    yPosition = addTextWithNewPage(`Total Desi Sale: ₹${totalDesiSale.toFixed(2)}`, yPosition);
-    yPosition = addTextWithNewPage(`Total Beer Sale: ₹${totalBeerSale.toFixed(2)}`, yPosition);
-
-    const pdfBlob = doc.output("blob");
-
-    try {
-      const formData = new FormData();
-      formData.append('file', pdfBlob, `invoice_${new Date().toISOString()}.pdf`);
-
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/invoices`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-    } catch (error) {
-      setError("Error saving invoice");
-      console.error(error);
-    }
-
-    doc.save(`Invoice-${invoiceDate}.pdf`); // Save with dynamic invoice number
-  };
-
-
+};
+ 
 
   const openModal = () => {
     setModalIsOpen(true);
