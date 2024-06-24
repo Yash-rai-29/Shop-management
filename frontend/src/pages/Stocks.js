@@ -104,7 +104,6 @@ const Stocks = () => {
 
       const updatedStocks = await Promise.all(
 
-
         stocks.map(async (stock) => {
           const newQuantity = newQuantities[stock._id] !== undefined ? Number(newQuantities[stock._id]) : stock.lastQuantity;
           if (isNaN(newQuantity)) return stock;
