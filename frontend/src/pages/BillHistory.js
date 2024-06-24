@@ -77,7 +77,7 @@ const BillHistory = () => {
       const recordDate = new Date(record.date);
       const recordMonth = recordDate.toISOString().substring(0, 7);
       return (!shop || record.shopName.toLowerCase() === shop.toLowerCase()) &&
-             recordMonth === month;
+        recordMonth === month;
     });
   };
 
@@ -90,24 +90,24 @@ const BillHistory = () => {
   const downloadInvoice = async (bill) => {
     try {
       const doc = new jsPDF();
-  
+
       // Add the Roboto font
       doc.addFileToVFS('Roboto-Regular.ttf', robotoRegularBase64);
       doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
       doc.setFont('Roboto');
-  
+
       // Title and shop name
       doc.setFontSize(16);
       doc.text("Om Ganeshay Namah", doc.internal.pageSize.getWidth() / 2, 10, { align: "center" });
       doc.setFontSize(14);
       doc.text(`Shop Name: ${bill.shop}`, doc.internal.pageSize.getWidth() / 2, 20, { align: "center" });
-  
+
       // Invoice details
       doc.setFontSize(12);
       const startY = 30; // Starting Y position for invoice details
       doc.text(`Invoice Number: ${bill._id}`, 14, startY);
-      doc.text(`Date: ${new Date(bill.pdfDate).toLocaleDateString()}`, 14, startY + 10);
-  
+      doc.text(`Date: ${new Date(bill.pdfDate).toLocaleDateString()}`, 160, startY + 10);
+
       // AutoTable for stock details
       autoTable(doc, {
         startY: startY + 20, // Adjusted startY to ensure there's no overlap
@@ -130,7 +130,7 @@ const BillHistory = () => {
           }
         },
       });
-  
+
       // Function to add text and handle page breaks
       const addTextWithNewPage = (text, y) => {
         const pageHeight = doc.internal.pageSize.height;
@@ -142,7 +142,7 @@ const BillHistory = () => {
         doc.text(text, 14, y);
         return y + 10; // Increment y position for the next line
       };
-  
+
       // Footer details
       let yPosition = doc.lastAutoTable.finalY + 20; // Start after the table with more spacing
       const footerDetails = [
@@ -159,12 +159,12 @@ const BillHistory = () => {
         { label: "Transportation", value: bill.transportation },
         { label: "Total Cash", value: bill.totalPaymentReceived },
       ];
-  
+
       footerDetails.forEach(detail => {
         const value = detail.value || 0; // Default to 0 if value is undefined or null
         yPosition = addTextWithNewPage(`${detail.label}: ₹${value.toFixed(2)}`, yPosition);
       });
-  
+
       // Save the PDF with a unique name
       doc.save(`invoice-${bill._id}.pdf`);
     } catch (error) {
@@ -202,7 +202,7 @@ const BillHistory = () => {
             </select>
           </div>
         </div>
-      
+
         {loading ? (
           <div className="text-center">Loading...</div>
         ) : (
@@ -247,9 +247,22 @@ const BillHistory = () => {
                     <td className="py-2 px-4 border">
                       <button
                         onClick={() => downloadInvoice(bill)}
-                        className="text-blue-500 hover:underline"
+                        className="text-blue-500"
                       >
-                        Download
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="white"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          className="w-7 h-7"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v16h16V4H4zm4 8l4 4m0 0l4-4m-4 4V8"
+                          />
+                        </svg>
                       </button>
                     </td>
                   </tr>

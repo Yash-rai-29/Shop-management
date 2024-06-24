@@ -59,9 +59,7 @@ const NavBar = ({ isOpen, toggleNavBar }) => {
                                 <li>
                                     <Link to="/receive-stock" className="text-white  text-xl p-4 hover:text-gray-200" onClick={() => toggleNavBar(false)}>Receive Stock</Link>
                                 </li>
-                                <li>
-                                    <Link to="/invoices" className="text-white  text-xl p-4 hover:text-gray-200" onClick={() => toggleNavBar(false)}>Invoices</Link>
-                                </li>
+                              
                                 <li>
                                     <Link to="/stocks" className="text-white  text-xl p-4 hover:text-gray-200" onClick={() => toggleNavBar(false)}>Stocks</Link>
                                 </li>
@@ -76,7 +74,7 @@ const NavBar = ({ isOpen, toggleNavBar }) => {
                     </ul>
                     <ul className="space-y-4">
                         {user ? (
-                            <li onClick={() => { onLogout(); toggleNavBar(false); }} className="cursor-pointer mt-72  text-xl p-4 text-white hover:text-gray-200">
+                            <li onClick={() => { onLogout(); toggleNavBar(false); }} className="cursor-pointer mt-96  text-xl p-4 text-white hover:text-gray-200">
                                 Logout
                             </li>
                         ) : (
