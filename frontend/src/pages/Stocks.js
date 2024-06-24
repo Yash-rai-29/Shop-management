@@ -209,7 +209,7 @@ const Stocks = () => {
                     <td className="border px-4 py-2">{stock.lastQuantity}</td>
                     <td className="border px-4 py-2">
                       <input
-                        type="number"
+                        type="text"
                         placeholder="New Quantity"
                         onChange={(e) =>
                           setNewQuantities({

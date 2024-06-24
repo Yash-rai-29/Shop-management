@@ -1,4 +1,7 @@
+<<<<<<< HEAD
+=======
 frontend/.env
+>>>>>>> a87fda130586fc3b7fbed4d5961120057eff26c8
 backend/.env
 backend/node_modules
 frontend/node_modules
@@ -25,3 +28,7 @@ frontend/node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+<<<<<<< HEAD
+frontend/.env
+=======
+>>>>>>> a87fda130586fc3b7fbed4d5961120057eff26c8
