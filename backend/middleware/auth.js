@@ -4,7 +4,7 @@ const User = require('../models/users');
 const auth = (roles = []) => {
     return async (req, res, next) => {
         const token = req.header('x-auth-token');
-        console.log(token, roles);
+        // console.log(token, roles);
         if (!token) {
             return res.status(401).json({ msg: 'No token, authorization denied' });
         }

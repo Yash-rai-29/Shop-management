@@ -129,7 +129,7 @@ const Stocks = () => {
             totalPaymentReceived,
             transportation,
         });
-
+        
         setStocks(updatedStocks.map(stock => ({ ...stock, lastQuantity: stock.newQuantity, soldQuantity: stock.lastQuantity - stock.newQuantity })));
         setError("");
     } catch (error) {
