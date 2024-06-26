@@ -66,8 +66,9 @@ const Records = () => {
                 <option value="assessment">Assessment</option>
                 <option value="Salary">Salary</option>
                 <option value="Cash Handling Charges">Cash Handling Charges</option>
-                <option value="Receive Payment By Bank">Bank Deposit Through Second Bank</option>
 
+                <option value="Receive Payment By Bank">Bank Deposit Through Second Bank</option>
+                <option value="Other">Others</option>
             </>
         )
     };
@@ -194,7 +195,7 @@ const Records = () => {
 
             const newRecord = {
                 recordName: record.recordName,
-                shopName: record.shopName,
+                shopName: record.shopName|| 'No Shop Name',
                 message: record.message || 'No message provided',
                 amount: record.debitedAmount, // Convert amount to string
                 date: new Date(formattedDate).toISOString().split('T')[0],
