@@ -16,6 +16,7 @@ const Records = () => {
     const [filterDate, setFilterDate] = useState('');
     const [sortField, setSortField] = useState('date');
     const [sortOrder, setSortOrder] = useState('asc');
+
     const [showModal, setShowModal] = useState(false);
     const [importedData, setImportedData] = useState([]);
     const [showProcessingModal, setShowProcessingModal] = useState(false);
@@ -57,7 +58,7 @@ const Records = () => {
         return (
             <>
 
-<option value="">Select Record Name</option>
+                <option value="">Select Record Name</option>
                 <option value="Purchase Stock">Purchase Stock</option>
                 <option value="Receive Payment">Bank Deposit</option>
                 <option value="Excise Inspector Payment">Excise Inspector Payment</option>
@@ -110,13 +111,31 @@ const Records = () => {
 
     const handleSort = (field) => {
         if (field === sortField) {
-            const newSortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
-            setSortOrder(newSortOrder);
+            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
         } else {
             setSortField(field);
             setSortOrder('asc');
         }
     };
+    const getSortedRecords = () => {
+        return [...records].sort((a, b) => {
+            const aValue = a[sortField];
+            const bValue = b[sortField];
+
+            if (sortField === 'date') {
+                const dateA = new Date(aValue);
+                const dateB = new Date(bValue);
+                return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+            }
+
+            if (sortOrder === 'asc') {
+                return aValue > bValue ? 1 : -1;
+            } else {
+                return aValue < bValue ? 1 : -1;
+            }
+        });
+    };
+
 
     const filterRecordsByShop = (record) => {
         if (!shopName) return true;
@@ -195,7 +214,7 @@ const Records = () => {
 
             const newRecord = {
                 recordName: record.recordName,
-                shopName: record.shopName|| 'No Shop Name',
+                shopName: record.shopName || 'No Shop Name',
                 message: record.message || 'No message provided',
                 amount: record.debitedAmount, // Convert amount to string
                 date: new Date(formattedDate).toISOString().split('T')[0],
@@ -376,9 +395,11 @@ const Records = () => {
                         <table className="min-w-full bg-white">
                             <thead>
                                 <tr>
-                                    <th className="py-2 px-4 border-b" onClick={() => handleSort('date')}>
+                                    <th className="py-2 px-4 border-b cursor-pointer" onClick={() => handleSort('date')}>
                                         Date {sortField === 'date' && (sortOrder === 'asc' ? <FaSortUp /> : <FaSortDown />)}
                                     </th>
+
+
                                     <th className="py-2 px-4 border-b" onClick={() => handleSort('recordName')}>
                                         Record Name {sortField === 'recordName' && (sortOrder === 'asc' ? <FaSortUp /> : <FaSortDown />)}
                                     </th>
@@ -397,7 +418,7 @@ const Records = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {records.filter(filterRecordsByShop).map((record) => (
+                            {getSortedRecords().filter(filterRecordsByShop).map((record) => (
                                     <tr key={record.id}>
                                         <td className="py-2 px-4 border-b">{formatDate(record.date)}</td>
                                         <td className="py-2 px-4 border-b">{record.recordName}</td>
@@ -439,7 +460,7 @@ const Records = () => {
                                                 onChange={(e) => handleRecordNameChange(index, e.target.value)}
                                                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                             >
-                                               <InputRecord />
+                                                <InputRecord />
                                             </select>
                                         </td>
                                         <td className="py-2 px-4 border-b">
@@ -448,7 +469,7 @@ const Records = () => {
                                                 onChange={(e) => handleShopNameChange(index, e.target.value)}
                                                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                             >
-                                               <InputShopName/>
+                                                <InputShopName />
                                             </select>
                                         </td>
                                         <td className="py-2 px-4 border-b">
@@ -474,32 +495,32 @@ const Records = () => {
                             Add Records
                         </button>
                         <Modal
-            isOpen={showProcessingModal}
-            onRequestClose={() => setShowProcessingModal(false)}
-            style={{
-                overlay: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)'
-                },
-                content: {
-                    top: '50%',
-                    left: '50%',
-                    right: 'auto',
-                    bottom: 'auto',
-                    marginRight: '-50%',
-                    transform: 'translate(-50%, -50%)',
-                    padding: '20px',
-                    borderRadius: '10px',
-                    textAlign: 'center',
-                    width: '300px'
-                }
-            }}
-        >
-            <h2 className="text-2xl mb-4">Processing...</h2>
-            <div className="flex justify-center items-center">
-                <div className="loader border-t-4 border-blue-500 rounded-full w-12 h-12 animate-spin"></div>
-            </div>
-            <p className="mt-4">Please wait while the records are being added.</p>
-        </Modal>
+                            isOpen={showProcessingModal}
+                            onRequestClose={() => setShowProcessingModal(false)}
+                            style={{
+                                overlay: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                                },
+                                content: {
+                                    top: '50%',
+                                    left: '50%',
+                                    right: 'auto',
+                                    bottom: 'auto',
+                                    marginRight: '-50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    padding: '20px',
+                                    borderRadius: '10px',
+                                    textAlign: 'center',
+                                    width: '300px'
+                                }
+                            }}
+                        >
+                            <h2 className="text-2xl mb-4">Processing...</h2>
+                            <div className="flex justify-center items-center">
+                                <div className="loader border-t-4 border-blue-500 rounded-full w-12 h-12 animate-spin"></div>
+                            </div>
+                            <p className="mt-4">Please wait while the records are being added.</p>
+                        </Modal>
 
                         <button
                             onClick={() => setShowModal(false)}
