@@ -276,7 +276,7 @@ const remainingCash = Math.max(
   totalCash - totalPayments - totalCashPayments
 );
 
-const startingBankBalance = 1000;
+const startingBankBalance = 713849.15;
 
 const totalBankBalanceAfterDeducting = records.reduce((acc, record) => {
   if (record.paymentMethod === "By Bank") {
