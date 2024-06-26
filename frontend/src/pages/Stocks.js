@@ -109,7 +109,7 @@ const Stocks = () => {
                 };
             })
         );
-
+console.log(updatedStocks)
         const totalPaymentReceived = totalSale + canteenCash - breakageCash - discount - salary - upiPayment - rent + rateDiff - transportation;
 
         const response = await axios.put(`${process.env.REACT_APP_API_URL}/transactions/updateStocksAndBill`, {
