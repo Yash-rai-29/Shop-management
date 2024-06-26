@@ -4,8 +4,11 @@ import './index.css';
 import App from './App';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-
+import Modal from 'react-modal';
 // import reportWebVitals from './reportWebVitals';
+
+Modal.setAppElement('#root');
+
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

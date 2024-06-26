@@ -2,17 +2,28 @@ const express = require('express');
 const router = express.Router();
 const Record = require('../models/Record');
 
-
 router.post('/', async (req, res) => {
     const { recordName, shopName, message, amount, date,paymentMethod } = req.body;
+    console.log('Incoming request body:', req.body); // Add this line
+
 
     try {
+        // Validate required fields
+        if (!recordName || !shopName || !message || amount === undefined || !date || !paymentMethod) {
+            return res.status(400).json({ msg: 'Please enter all fields' });
+        }
+
+        // Validate date format
+        const formattedDate = new Date(date);
+        if (isNaN(formattedDate.getTime())) {
+            return res.status(400).json({ msg: 'Invalid date format' });
+        }
         const newRecord = new Record({
             recordName,
             shopName,
             message,
             amount,
-            date: new Date(date), // Ensure date is properly formatted
+            date: formattedDate,
             paymentMethod
         });
 
@@ -24,9 +35,6 @@ router.post('/', async (req, res) => {
     }
 });
 
-// @route   GET api/records
-// @desc    Get records with optional filtering and sorting
-// @access  Private
 router.get('/', async (req, res) => {
     const { date, sortOrder } = req.query;
     const sort = sortOrder === 'desc' ? -1 : 1;
@@ -34,7 +42,6 @@ router.get('/', async (req, res) => {
     try {
         let query = {};
         if (date) {
-            // Create date range for the entire day
             const startDate = new Date(date);
             startDate.setHours(0, 0, 0, 0);
             const endDate = new Date(date);

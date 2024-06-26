@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
-
+import Modal from 'react-modal';
 const ReceiveStock = () => {
   const [stocks, setStocks] = useState([]);
   const [shop, setShop] = useState("Vamanpui");
@@ -16,7 +16,7 @@ const ReceiveStock = () => {
   const [showModal, setShowModal] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const { user, loading: userLoading } = useContext(AuthContext);
-
+  const [showProcessingModal, setShowProcessingModal] = useState(false);
   const fetchStocks = async () => {
     if (userLoading) return;
 
@@ -226,6 +226,33 @@ const ReceiveStock = () => {
           >
             Add Stock
           </button>
+          <Modal
+            isOpen={showProcessingModal}
+            onRequestClose={() => setShowProcessingModal(false)}
+            style={{
+                overlay: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                },
+                content: {
+                    top: '50%',
+                    left: '50%',
+                    right: 'auto',
+                    bottom: 'auto',
+                    marginRight: '-50%',
+                    transform: 'translate(-50%, -50%)',
+                    padding: '20px',
+                    borderRadius: '10px',
+                    textAlign: 'center',
+                    width: '300px'
+                }
+            }}
+        >
+            <h2 className="text-2xl mb-4">Processing...</h2>
+            <div className="flex justify-center items-center">
+                <div className="loader border-t-4 border-blue-500 rounded-full w-12 h-12 animate-spin"></div>
+            </div>
+            <p className="mt-4">Please wait while the records are being added.</p>
+        </Modal>
         </div>
       </div>
 

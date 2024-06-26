@@ -86,11 +86,12 @@ const BillHistory = () => {
   const filteredRecords = filterRecords(records, shop, month);
 
   const totalCashInShop = filteredBillHistory.reduce((acc, bill) => acc + bill.totalPaymentReceived, 0);
-
   const downloadInvoice = async (bill) => {
     try {
       const doc = new jsPDF();
-
+      
+      console.log(bill.updatedStocks);
+      
       // Add the Roboto font
       doc.addFileToVFS('Roboto-Regular.ttf', robotoRegularBase64);
       doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
@@ -116,10 +117,10 @@ const BillHistory = () => {
           stock.product,
           stock.size,
           stock.lastQuantity,
-          stock.quantity,
-          stock.lastQuantity - stock.quantity,
+          stock.newQuantity,
+          stock.lastQuantity - stock.newQuantity,
           stock.price,
-          ((stock.lastQuantity - stock.quantity) * stock.price).toFixed(2)
+          ((stock.lastQuantity - stock.newQuantity) * stock.price).toFixed(2)
         ]),
         didDrawPage: (data) => {
           if (data.pageNumber === 1) {
