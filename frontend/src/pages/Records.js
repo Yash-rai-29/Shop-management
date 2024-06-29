@@ -66,8 +66,8 @@ const Records = () => {
                 <option value="assessment">Assessment</option>
                 <option value="Salary">Salary</option>
                 <option value="Cash Handling Charges">Cash Handling Charges</option>
-
                 <option value="Receive Payment By Bank">Bank Deposit Through Second Bank</option>
+                <option value="Saving Bank Added">Saving Bank</option>
                 <option value="Other">Others</option>
             </>
         )

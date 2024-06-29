@@ -22,7 +22,12 @@ const Stocks = () => {
   const [totalDesiSale, setTotalDesiSale] = useState(0);
   const [totalBeerSale, setTotalBeerSale] = useState(0);
   const { user, loading: userLoading } = useContext(AuthContext);
-  const [pdfDate, setPdfDate] = useState(new Date().toISOString().substring(0, 10));
+  const getYesterdayDate = () => {
+    const today = new Date();
+    today.setDate(today.getDate() - 1); // Subtract one day
+    return today.toISOString().substring(0, 10); // Format to 'YYYY-MM-DD'
+  };
+  const [pdfDate, setPdfDate] = useState(getYesterdayDate());
 
   useEffect(() => {
     const fetchStocks = async () => {
