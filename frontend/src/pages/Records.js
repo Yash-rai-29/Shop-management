@@ -80,7 +80,7 @@ const Records = () => {
         try {
             const response = await axios.post(`${process.env.REACT_APP_API_URL}/records`, {
                 recordName,
-                shopName,
+                shopName: shopName|| "No Shop Selected",
                 message,
                 amount,
                 date,
