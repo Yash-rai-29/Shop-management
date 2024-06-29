@@ -276,7 +276,7 @@ const remainingCash = Math.max(
   totalCash - totalPayments - totalCashPayments
 );
 
-const startingBankBalance = 713849.15;
+const startingBankBalance = 956320.15;
 
 const totalBankBalanceAfterDeducting = records.reduce((acc, record) => {
   if (record.paymentMethod === "By Bank") {
@@ -768,7 +768,7 @@ const totalBankBalanceAfterDeducting = records.reduce((acc, record) => {
           <h2 className="text-xl font-bold text-white mb-2 text-center">
             Records Data
           </h2>
-          <div className="flex flex-wrap w-full gap-6 ">
+          <div className="flex flex-wrap  justify-center items-center  w-full gap-6 ">
             <div
               className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52 rounded-md "
               onClick={() => handleRecordClick("Purchase Stock")}
