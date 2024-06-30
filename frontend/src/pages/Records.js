@@ -46,7 +46,7 @@ const Records = () => {
         return (
             <>
 
-                <option value="">Select Shop</option>
+                <option value="No Shop Name">Select Shop</option>
                 <option value="vamanpui">Vamanpui</option>
                 <option value="amariya">Amariya</option>
 
