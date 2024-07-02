@@ -30,12 +30,8 @@ const BillHistory = () => {
         }
 
         const [billResponse, recordResponse] = await Promise.all([
-          axios.get(`${process.env.REACT_APP_API_URL}/billHistory`, {
-            headers: { Authorization: `Bearer ${user.token}` }
-          }),
-          axios.get(`${process.env.REACT_APP_API_URL}/records`, {
-            headers: { Authorization: `Bearer ${user.token}` }
-          })
+          axios.get(`${process.env.REACT_APP_API_URL}/billHistory`),
+          axios.get(`${process.env.REACT_APP_API_URL}/records`)
         ]);
 
         setBillHistory(billResponse.data);
