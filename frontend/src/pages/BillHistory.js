@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import jsPDF from 'jspdf';
@@ -30,8 +31,12 @@ const BillHistory = () => {
         }
 
         const [billResponse, recordResponse] = await Promise.all([
-          axios.get(`${process.env.REACT_APP_API_URL}/billHistory`),
-          axios.get(`${process.env.REACT_APP_API_URL}/records`)
+          axios.get(`${process.env.REACT_APP_API_URL}/billHistory`, {
+            headers: { Authorization: `Bearer ${user.token}` }
+          }),
+          axios.get(`${process.env.REACT_APP_API_URL}/records`, {
+            headers: { Authorization: `Bearer ${user.token}` }
+          })
         ]);
 
         setBillHistory(billResponse.data);

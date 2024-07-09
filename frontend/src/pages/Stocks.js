@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
@@ -22,12 +23,7 @@ const Stocks = () => {
   const [totalDesiSale, setTotalDesiSale] = useState(0);
   const [totalBeerSale, setTotalBeerSale] = useState(0);
   const { user, loading: userLoading } = useContext(AuthContext);
-  const getYesterdayDate = () => {
-    const today = new Date();
-    today.setDate(today.getDate() - 1); // Subtract one day
-    return today.toISOString().substring(0, 10); // Format to 'YYYY-MM-DD'
-  };
-  const [pdfDate, setPdfDate] = useState(getYesterdayDate());
+  const [pdfDate, setPdfDate] = useState(new Date().toISOString().substring(0, 10));
 
   useEffect(() => {
     const fetchStocks = async () => {
@@ -101,7 +97,7 @@ const Stocks = () => {
   };
   const onUpdateStocks = async () => {
     setLoading(true);
-    
+
     try {
         // Prepare the payload for both stock updates and bill history
         const updatedStocks = await Promise.all(
@@ -115,13 +111,8 @@ const Stocks = () => {
                 };
             })
         );
-<<<<<<< HEAD
 console.log(updatedStocks)
         const totalPaymentReceived = totalSale + canteenCash - breakageCash - discount  - upiPayment - rent + rateDiff - transportation;
-=======
-        console.log(updatedStocks)
-        const totalPaymentReceived = totalSale + canteenCash - breakageCash - discount - salary - upiPayment - rent + rateDiff - transportation;
->>>>>>> 740c054a44adf2e501f1f0a5d083a3d02810694d
 
         const response = await axios.put(`${process.env.REACT_APP_API_URL}/transactions/updateStocksAndBill`, {
             updatedStocks,

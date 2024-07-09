@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaSortUp, FaSortDown } from 'react-icons/fa';
@@ -74,14 +75,16 @@ const Records = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-z
+
+        const formattedDates = new Date(date).toISOString().split('T')[0];
+        
         try {
             const response = await axios.post(`${process.env.REACT_APP_API_URL}/records`, {
                 recordName,
                 shopName: shopName|| "No Shop Selected",
                 message,
                 amount,
-                date,
+                date:formattedDates,
                 paymentMethod
             });
             console.log(response);

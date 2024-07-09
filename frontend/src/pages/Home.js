@@ -4,11 +4,10 @@ import ReactApexChart from "react-apexcharts";
 import { AuthContext } from "../context/AuthContext";
 import "tailwindcss/tailwind.css";
 import Modal from "../components/Modal"; // Import the Modal component
+
 import Modals from 'react-modal';
 
 Modals.setAppElement('#root');
-
-
 const Home = () => {
   const { user, loading: userLoading } = useContext(AuthContext);
   const [billHistory, setBillHistory] = useState([]);
@@ -28,6 +27,7 @@ const Home = () => {
   const [modalData, setModalData] = useState([]);
 
   const [selectedDate, setSelectedDate] = useState(null);
+
   const [showProcessingModal, setShowProcessingModal] = useState(true);
 
 
@@ -39,7 +39,6 @@ const Home = () => {
 
     return () => clearTimeout(timer); // Cleanup the timer
   }, []);
-
 
   const handleShopChange = (e) => {
     setSelectedShop(e.target.value);
@@ -142,22 +141,23 @@ const Home = () => {
   };
 
 
+
   let monthlyBankBalances = [];
   const startingBankBalance = 956320;
-
+  
   // Initialize with the starting balance for the first month
   const initialMonth = {
     year: selectedDate ? selectedDate.year : new Date().getFullYear(),
     month: selectedDate ? selectedDate.month : new Date().getMonth(),
     balance: startingBankBalance,
   };
-
+  
   monthlyBankBalances.push(initialMonth);
-
+  
   const calculateOpeningBalance = () => {
     const selectedMonth = selectedDate ? selectedDate.month : null;
     const selectedYear = selectedDate ? selectedDate.year : null;
-
+  
     // Ensure monthlyBankBalances array is populated up to the current selected month
     for (let year = initialMonth.year; year <= (selectedYear || new Date().getFullYear()); year++) {
       for (let month = (year === initialMonth.year ? initialMonth.month : 0); month < (year === selectedYear ? selectedMonth + 1 : 12); month++) {
@@ -171,16 +171,16 @@ const Home = () => {
         }
       }
     }
-
+  
     const getPreviousMonthBalance = (month, year) => {
       const prevMonth = month === 0 ? 11 : month - 1;
       const prevYear = month === 0 ? year - 1 : year;
       const prevIndex = prevYear * 12 + prevMonth;
       return monthlyBankBalances[prevIndex] ? monthlyBankBalances[prevIndex].balance : startingBankBalance;
     };
-
+  
     const previousMonthBalance = selectedDate ? getPreviousMonthBalance(selectedMonth, selectedYear) : startingBankBalance;
-
+  
     const totalBankDeduct = records.filter(
       (record) =>
         record.paymentMethod === "By Bank" &&
@@ -188,38 +188,38 @@ const Home = () => {
         new Date(record.date).getMonth() === selectedMonth &&
         new Date(record.date).getFullYear() === selectedYear
     ).reduce((acc, record) => acc + record.amount, 0);
-
+  
     const totalPayments = records.filter(
       (record) =>
         record.recordName === "Receive Payment" &&
         new Date(record.date).getMonth() === selectedMonth &&
         new Date(record.date).getFullYear() === selectedYear
     ).reduce((acc, record) => acc + record.amount, 0);
-
+  
     const totalUPIPayments = billHistory.filter(
       (bill) =>
         new Date(bill.date).getMonth() === selectedMonth &&
         new Date(bill.date).getFullYear() === selectedYear
     ).reduce((acc, bill) => acc + bill.upiPayment, 0);
-
+  
     const totalOpeningBalance = previousMonthBalance + totalPayments + totalUPIPayments - totalBankDeduct;
-
+  
     monthlyBankBalances[selectedYear * 12 + selectedMonth].balance = totalOpeningBalance;
-
+  
     return totalOpeningBalance;
   };
-
+  
   const openingBalance = calculateOpeningBalance();
-
+  
   const calculateTotals = () => {
     const selectedMonth = selectedDate ? selectedDate.month : null;
     const selectedYear = selectedDate ? selectedDate.year : null;
-
+  
     const isInSelectedMonth = (date) => {
       const recordDate = new Date(date);
       return (!selectedDate || (recordDate.getMonth() === selectedMonth && recordDate.getFullYear() === selectedYear));
     };
-
+  
     const filterRecords = (recordName) => {
       return records.filter((record) => {
         const matchesRecordName = record.recordName === recordName;
@@ -227,8 +227,8 @@ const Home = () => {
         return matchesRecordName && matchesShop && isInSelectedMonth(record.date);
       });
     };
-
-    const filteredBillHistory = filterData()
+  
+     const filteredBillHistory = filterData()
 
     const totalPayments = filterRecords("Receive Payment").reduce((acc, record) => acc + record.amount, 0);
     const totalPurchaseStocks = filterRecords("Purchase Stock").reduce((acc, record) => acc + record.amount, 0);
@@ -239,23 +239,23 @@ const Home = () => {
         (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase()) &&
         isInSelectedMonth(record.date)
     ).reduce((acc, record) => acc + record.amount, 0);
-
+  
     const totalUPIPayments = filteredBillHistory.reduce((acc, bill) => acc + bill.upiPayment, 0);
     const totalCash = filteredBillHistory.reduce((acc, bill) => acc + bill.totalPaymentReceived, 0);
     const totalRent = filteredBillHistory.reduce((acc, bill) => acc + bill.rent, 0);
     const totalTransportation = filteredBillHistory.reduce((acc, bill) => acc + (bill.transportation || 0), 0);
     const totalBreakageCash = filteredBillHistory.reduce((acc, bill) => acc + bill.breakageCash, 0);
-
+  
     const remainingCash = Math.max(0, totalCash - totalPayments - totalCashPayments);
-
+  
     const totalBankDeduct = records.filter(
       (record) =>
         record.paymentMethod === "By Bank" &&
         record.recordName !== "Receive Payment By saving" &&
         isInSelectedMonth(record.date)
     ).reduce((acc, record) => acc + record.amount, 0);
-
-    const totalBankBalance = (openingBalance + totalPayments + totalUPIPayments - totalBankDeduct).toFixed(2);
+  
+      const totalBankBalance = (openingBalance + totalPayments + totalUPIPayments - totalBankDeduct).toFixed(2);
 
     const totalExciseInspector = filterRecords("Excise Inspector Payment").reduce((acc, record) => acc + record.amount, 0);
     const totalDirectPurchase = filterRecords("Directly Purchase Stock").reduce((acc, record) => acc + record.amount, 0);
@@ -265,14 +265,14 @@ const Home = () => {
     const totalOtherDeposit = filterRecords("Other Deposit").reduce((acc, record) => acc + record.amount, 0);
     const totalSalary = filterRecords("Salary").reduce((acc, record) => acc + record.amount, 0);
     const other = filterRecords("Other").reduce((acc, record) => acc + record.amount, 0);
-
+  
     const totalSavingBankBalance = filterRecords("Saving Bank Added").reduce((acc, record) => acc + record.amount, 0);
-
+  
     return {
-      totalPayments,//"Receive Payment
+      totalPayments,
       totalPurchaseStocks,
-      totalCash,
       totalUPIPayments,
+      totalCash,
       totalBankBalance,
       totalExciseInspector,
       totalDirectPurchase,
@@ -290,8 +290,9 @@ const Home = () => {
       other,
     };
   };
+  
 
-
+  // Example usage
   const {
     totalPayments,
     totalPurchaseStocks,
@@ -313,13 +314,13 @@ const Home = () => {
     remainingCash,
     other,
   } = calculateTotals();
+  
 
-
-  const formatNumberToIndianLocale = (number) => {
+    const formatNumberToIndianLocale = (number) => {
     return new Intl.NumberFormat('en-IN').format(number);
   };
   
-
+ 
   const handleRecordClick = (recordName) => {
     setModalTitle(`Details for ${recordName}`);
     const filteredData = records.filter(
@@ -338,7 +339,7 @@ const Home = () => {
   useEffect(() => {
 
 
-
+    
     const { areaData, pieData, lineData, brandData } = prepareChartData();
     setAreaData(areaData);
     setPieData(pieData);
@@ -663,7 +664,6 @@ const Home = () => {
   }
 
   const filteredData = filterData();
-
   const monthlyTotals = {};
   const currentYear = new Date().getFullYear();
 
@@ -693,11 +693,11 @@ const Home = () => {
     setSelectedDate(null); // Reset selectedDate state if you have it
     calculateTotals(); // Re-run calculations with cleared filters
   };
-
+  
 
   return (
     <div className=" p-4 h-auto bg-blue-300">
-      <Modals
+        <Modals
         isOpen={showProcessingModal}
         onRequestClose={() => setShowProcessingModal(false)}
         style={{
@@ -724,7 +724,6 @@ const Home = () => {
         </div>
         <p className="mt-4">Please wait while the data is being Loaded.</p>
       </Modals>
-
       <header className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold mb-4 ml-96">Dashboard</h2>
         <div className="ml-auto flex space-x-2">
@@ -868,7 +867,7 @@ const Home = () => {
               onClick={() => handleRecordClick("Cash Handling Charges")}
             >
               <h3 className="font-semibold text-lg mb-2">
-                Cash Handling
+              Cash Handling 
               </h3>
               <p className="text-xl">₹ {formatNumberToIndianLocale(totalCashHandling)}</p>
             </div>
@@ -879,7 +878,7 @@ const Home = () => {
             >
               <h3 className="font-semibold text-lg mb-2">
                 Saving to Current</h3>
-              <p className="text-xl">₹ </p>
+                <p className="text-xl">₹ </p>
             </div>
 
             <div
