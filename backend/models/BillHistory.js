@@ -1,3 +1,4 @@
+const { Timestamp } = require('mongodb');
 const mongoose = require('mongoose');
 
 const BillHistorySchema = new mongoose.Schema({
@@ -9,6 +10,9 @@ const BillHistorySchema = new mongoose.Schema({
       quantity: Number,
       price: Number,
       totalSale: Number,
+      newQuantity: Number,
+      lastUpdated: Date,
+      Shop: String,
     }
   ],
   pdfDate: { type: Date, required: true },
