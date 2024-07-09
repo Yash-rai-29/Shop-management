@@ -74,15 +74,14 @@ const Records = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        const formattedDates = new Date(date).toISOString().split('T')[0];
+z
         try {
             const response = await axios.post(`${process.env.REACT_APP_API_URL}/records`, {
                 recordName,
                 shopName: shopName|| "No Shop Selected",
                 message,
                 amount,
-                date:formattedDates,
+                date,
                 paymentMethod
             });
             console.log(response);
