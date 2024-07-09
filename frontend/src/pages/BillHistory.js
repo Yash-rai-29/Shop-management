@@ -48,6 +48,7 @@ const BillHistory = () => {
         setLoading(false);
       }
     };
+    console.log(billHistory);
 
     fetchData();
   }, [user, userLoading]);

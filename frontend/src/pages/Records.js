@@ -12,7 +12,6 @@ const Records = () => {
     const [amount, setAmount] = useState('');
     const [date, setDate] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('By Cash');
-    const [accountType, setAccountType] = useState('');
     const [records, setRecords] = useState([]);
     const [filterDate, setFilterDate] = useState('');
     const [sortField, setSortField] = useState('date');
@@ -46,11 +45,9 @@ const Records = () => {
     const InputShopName = () => {
         return (
             <>
-
-                <option value="">Select Shop</option>
+                <option value="No Shop Name">Select Shop</option>
                 <option value="vamanpui">Vamanpui</option>
                 <option value="amariya">Amariya</option>
-
             </>
         )
     };
@@ -61,15 +58,15 @@ const Records = () => {
 
                 <option value="">Select Record Name</option>
                 <option value="Purchase Stock">Purchase Stock</option>
-                <option value="Receive Payment">Bank Deposit</option>
+                <option value="Receive Payment">Deposit in Current Bank</option>
                 <option value="Excise Inspector Payment">Excise Inspector Payment</option>
                 <option value="Directly Purchase Stock">Directly Purchase Stock</option>
                 <option value="MMGD">MMGD</option>
                 <option value="assessment">Assessment</option>
                 <option value="Salary">Salary</option>
                 <option value="Cash Handling Charges">Cash Handling Charges</option>
-
-                <option value="Receive Payment By Bank">Bank Deposit Through Second Bank</option>
+                <option value="Receive Payment By saving">Saving to Current Transfer</option>
+                <option value="Saving Bank Added">Deposit in Saving Bank</option>
                 <option value="Other">Others</option>
             </>
         )
@@ -77,34 +74,30 @@ const Records = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-    
+
         try {
             const response = await axios.post(`${process.env.REACT_APP_API_URL}/records`, {
                 recordName,
-                shopName: shopName || "No Shop Name",
+                shopName: shopName|| "No Shop Selected",
                 message,
                 amount,
                 date,
-                paymentMethod,
-                accountType: recordName === 'Receive Payment' ? accountType : undefined // Only send accountType if recordName is 'Receive Payment'
+                paymentMethod
             });
             console.log(response);
             alert('Record added successfully');
-    
+
             fetchRecords();
-            // Reset state after submission
             setRecordName('Purchase Stock');
             setShopName('');
             setMessage('');
             setAmount('');
             setDate(new Date().toISOString().split('T')[0]);
             setPaymentMethod('');
-            setAccountType(''); // Reset accountType after submission
         } catch (error) {
             console.error('There was an error adding the record!', error);
         }
     };
-    
 
     const formatDate = (isoDate) => {
         const date = new Date(isoDate);
@@ -377,26 +370,6 @@ const Records = () => {
                             <option value="By Bank">By Bank</option>
                         </select>
                     </div>
-                    {recordName === 'Receive Payment' && (
-    <div className="mb-6">
-        <label
-            className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="accountType"
-        >
-            Account Type
-        </label>
-        <select
-            id="accountType"
-            value={accountType}
-            onChange={(e) => setAccountType(e.target.value)}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            required
-        >
-            <option value="Current Account">Current Account</option>
-            <option value="Saving Account">Saving Account</option>
-        </select>
-    </div>
-)}
                     <div className="flex items-center justify-between">
                         <button
                             type="submit"
@@ -566,4 +539,3 @@ const Records = () => {
 }
 
 export default Records;
-

@@ -23,6 +23,43 @@ const Home = () => {
   const [modalTitle, setModalTitle] = useState("");
   const [modalData, setModalData] = useState([]);
 
+  const [selectedDate, setSelectedDate] = useState(null);
+
+  const handleShopChange = (e) => {
+    setSelectedShop(e.target.value);
+  };
+
+  const handleDateFilterChange = (e) => {
+    setDateFilter(e.target.value);
+    setDateValue("");
+  };
+
+  const handleDateValueChange = (e) => {
+    const value = e.target.value;
+    setDateValue(value);
+    if (value) {
+      const date = new Date(value);
+      setSelectedDate({ year: date.getFullYear(), month: date.getMonth() });
+    } else {
+      setSelectedDate(null); // Reset selected date if value is empty
+    }
+  };
+
+  const getDateInputType = (filter) => {
+    switch (filter) {
+      case "date":
+        return "date";
+      case "month":
+        return "month";
+      case "year":
+        return "number"; // Use number input for year
+      case "week":
+        return "week"; // Use week input for week
+      default:
+        return "date"; // Default to 'date' for safety
+    }
+  };
+
   useEffect(() => {
     if (userLoading) return;
 
@@ -46,46 +83,19 @@ const Home = () => {
     };
 
     fetchDashboardData();
+    console.log(billHistory);
   }, [user, userLoading]);
-
-  const handleShopChange = (e) => {
-    setSelectedShop(e.target.value);
-  };
-
-  const handleDateFilterChange = (e) => {
-    setDateFilter(e.target.value);
-    setDateValue("");
-  };
-
-  const handleDateValueChange = (e) => {
-    setDateValue(e.target.value);
-  };
-
-  const getDateInputType = (filter) => {
-    switch (filter) {
-      case "date":
-        return "date";
-      case "month":
-        return "month";
-      case "year":
-        return "number"; // Use number input for year
-      case "week":
-        return "week"; // Use week input for week
-      default:
-        return "date"; // Default to 'date' for safety
-    }
-  };
 
   const filterData = () => {
     let filteredBillHistory = billHistory;
-  
+
     // Apply shop filter
     if (selectedShop) {
       filteredBillHistory = filteredBillHistory.filter(
         (bill) => bill.shop.toLowerCase() === selectedShop.toLowerCase()
       );
     }
-  
+
     // Apply date filter
     if (dateValue) {
       filteredBillHistory = filteredBillHistory.filter((bill) => {
@@ -111,233 +121,188 @@ const Home = () => {
         }
       });
     }
-  
-    console.log("Filtered Bill History:", filteredBillHistory); // Check filtered data
-  
+
     return filteredBillHistory;
   };
 
+
+
+  let monthlyBankBalances = [];
+  const startingBankBalance = 956320;
   
+  // Initialize with the starting balance for the first month
+  const initialMonth = {
+    year: selectedDate ? selectedDate.year : new Date().getFullYear(),
+    month: selectedDate ? selectedDate.month : new Date().getMonth(),
+    balance: startingBankBalance,
+  };
+  
+  monthlyBankBalances.push(initialMonth);
+  
+  const calculateOpeningBalance = () => {
+    const selectedMonth = selectedDate ? selectedDate.month : null;
+    const selectedYear = selectedDate ? selectedDate.year : null;
+  
+    // Ensure monthlyBankBalances array is populated up to the current selected month
+    for (let year = initialMonth.year; year <= (selectedYear || new Date().getFullYear()); year++) {
+      for (let month = (year === initialMonth.year ? initialMonth.month : 0); month < (year === selectedYear ? selectedMonth + 1 : 12); month++) {
+        const index = year * 12 + month;
+        if (!monthlyBankBalances[index]) {
+          monthlyBankBalances[index] = {
+            year,
+            month,
+            balance: startingBankBalance,
+          };
+        }
+      }
+    }
+  
+    const getPreviousMonthBalance = (month, year) => {
+      const prevMonth = month === 0 ? 11 : month - 1;
+      const prevYear = month === 0 ? year - 1 : year;
+      const prevIndex = prevYear * 12 + prevMonth;
+      return monthlyBankBalances[prevIndex] ? monthlyBankBalances[prevIndex].balance : startingBankBalance;
+    };
+  
+    const previousMonthBalance = selectedDate ? getPreviousMonthBalance(selectedMonth, selectedYear) : startingBankBalance;
+  
+    const totalBankDeduct = records.filter(
+      (record) =>
+        record.paymentMethod === "By Bank" &&
+        record.recordName !== "Receive Payment By saving" &&
+        new Date(record.date).getMonth() === selectedMonth &&
+        new Date(record.date).getFullYear() === selectedYear
+    ).reduce((acc, record) => acc + record.amount, 0);
+  
+    const totalPayments = records.filter(
+      (record) =>
+        record.recordName === "Receive Payment" &&
+        new Date(record.date).getMonth() === selectedMonth &&
+        new Date(record.date).getFullYear() === selectedYear
+    ).reduce((acc, record) => acc + record.amount, 0);
+  
+    const totalUPIPayments = billHistory.filter(
+      (bill) =>
+        new Date(bill.date).getMonth() === selectedMonth &&
+        new Date(bill.date).getFullYear() === selectedYear
+    ).reduce((acc, bill) => acc + bill.upiPayment, 0);
+  
+    const totalOpeningBalance = previousMonthBalance + totalPayments + totalUPIPayments - totalBankDeduct;
+  
+    monthlyBankBalances[selectedYear * 12 + selectedMonth].balance = totalOpeningBalance;
+  
+    return totalOpeningBalance;
+  };
+  
+  const openingBalance = calculateOpeningBalance();
   
   const calculateTotals = () => {
-    const filteredPayments = records.filter((record) => {
-      const isReceivePayment = record.recordName === "Receive Payment";
-      const matchesShop =
-        !selectedShop ||
-        record.shopName.toLowerCase() === selectedShop.toLowerCase();
+    const selectedMonth = selectedDate ? selectedDate.month : null;
+    const selectedYear = selectedDate ? selectedDate.year : null;
   
-      if (dateFilter === "month" && dateValue) {
-        const paymentDate = new Date(record.date);
-        const selectedDate = new Date(dateValue);
-        return (
-          isReceivePayment &&
-          matchesShop &&
-          paymentDate.getMonth() === selectedDate.getMonth() &&
-          paymentDate.getFullYear() === selectedDate.getFullYear()
-        );
-      }
+    const isInSelectedMonth = (date) => {
+      const recordDate = new Date(date);
+      return (!selectedDate || (recordDate.getMonth() === selectedMonth && recordDate.getFullYear() === selectedYear));
+    };
   
-      return isReceivePayment && matchesShop;
-    });
+    const filterRecords = (recordName) => {
+      return records.filter((record) => {
+        const matchesRecordName = record.recordName === recordName;
+        const matchesShop = !selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase();
+        return matchesRecordName && matchesShop && isInSelectedMonth(record.date);
+      });
+    };
   
-    const filteredPurchaseStocks = records.filter(
+    const filteredBillHistory = billHistory.filter((bill) => isInSelectedMonth(bill.date));
+  
+    const totalPayments = filterRecords("Receive Payment").reduce((acc, record) => acc + record.amount, 0);
+    const totalPurchaseStocks = filterRecords("Purchase Stock").reduce((acc, record) => acc + record.amount, 0);
+    const totalCashPayments = records.filter(
       (record) =>
-        record.recordName === "Purchase Stock" &&
-        (!selectedShop ||
-          record.shopName.toLowerCase() === selectedShop.toLowerCase())
-    );
+        record.paymentMethod === "By Cash" &&
+        record.recordName !== "Receive Payment" &&
+        (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase()) &&
+        isInSelectedMonth(record.date)
+    ).reduce((acc, record) => acc + record.amount, 0);
   
-    const totalPayments = filteredPayments.reduce(
-      (acc, record) => acc + record.amount,
-      0
-    );
+    const totalUPIPayments = filteredBillHistory.reduce((acc, bill) => acc + bill.upiPayment, 0);
+    const totalCash = filteredBillHistory.reduce((acc, bill) => acc + bill.totalPaymentReceived, 0);
+    const totalRent = filteredBillHistory.reduce((acc, bill) => acc + bill.rent, 0);
+    const totalTransportation = filteredBillHistory.reduce((acc, bill) => acc + (bill.transportation || 0), 0);
+    const totalBreakageCash = filteredBillHistory.reduce((acc, bill) => acc + bill.breakageCash, 0);
   
-    const filteredBillHistory = filterData();
+    const remainingCash = Math.max(0, totalCash - totalPayments - totalCashPayments);
   
-    const totalPurchaseStocks = filteredPurchaseStocks.reduce(
-      (acc, record) => acc + record.amount,
-      0
-    );
+    const totalBankDeduct = records.filter(
+      (record) =>
+        record.paymentMethod === "By Bank" &&
+        record.recordName !== "Receive Payment By saving" &&
+        isInSelectedMonth(record.date)
+    ).reduce((acc, record) => acc + record.amount, 0);
   
-    const totalUPIPayments = filteredBillHistory.reduce(
-      (acc, bill) => acc + bill.upiPayment,
-      0
-    );
+    const totalBankBalance = openingBalance + totalPayments + totalUPIPayments - totalBankDeduct;
   
-    const totalCash = filteredBillHistory.reduce(
-      (acc, bill) => acc + bill.totalPaymentReceived,
-      0
-    );
+    const totalExciseInspector = filterRecords("Excise Inspector Payment").reduce((acc, record) => acc + record.amount, 0);
+    const totalDirectPurchase = filterRecords("Directly Purchase Stock").reduce((acc, record) => acc + record.amount, 0);
+    const totalMMGD = filterRecords("MMGD").reduce((acc, record) => acc + record.amount, 0);
+    const totalAssessment = filterRecords("assessment").reduce((acc, record) => acc + record.amount, 0);
+    const totalCashHandling = filterRecords("Cash Handling Charges").reduce((acc, record) => acc + record.amount, 0);
+    const totalOtherDeposit = filterRecords("Other Deposit").reduce((acc, record) => acc + record.amount, 0);
+    const totalSalary = filterRecords("Salary").reduce((acc, record) => acc + record.amount, 0);
+    const other = filterRecords("Other").reduce((acc, record) => acc + record.amount, 0);
   
-    const totalBankBalance = totalPayments + totalUPIPayments;
+    const totalSavingBankBalance = filterRecords("Saving Bank Added").reduce((acc, record) => acc + record.amount, 0);
   
-    const totalExciseInspector = records
-      .filter(
-        (record) =>
-          record.recordName === "Excise Inspector Payment" &&
-          (!selectedShop ||
-            record.shopName.toLowerCase() === selectedShop.toLowerCase())
-      )
-      .reduce((acc, record) => acc + record.amount, 0);
-  
-    const totalPurchaseBalance = records
-      .filter(
-        (record) =>
-          record.recordName === "Purchase Stock" &&
-          (!selectedShop ||
-            record.shopName.toLowerCase() === selectedShop.toLowerCase())
-      )
-      .reduce((acc, record) => acc + record.amount, 0);
-  
-    const totalDirectPurchase = records
-      .filter(
-        (record) =>
-          record.recordName === "Directly Purchase Stock" &&
-          (!selectedShop ||
-            record.shopName.toLowerCase() === selectedShop.toLowerCase())
-      )
-      .reduce((acc, record) => acc + record.amount, 0);
-  
-    const totalSalary = records
-      .filter(
-        (record) =>
-          record.recordName === "Salary" &&
-          (!selectedShop ||
-            record.shopName.toLowerCase() === selectedShop.toLowerCase())
-      )
-      .reduce((acc, record) => acc + record.amount, 0);
-  
-
-      const totalmmgd = records
-      .filter(
-        (record) =>
-          record.recordName === "MMGD" &&
-          (!selectedShop ||
-            record.shopName.toLowerCase() === selectedShop.toLowerCase())
-      )
-      .reduce((acc, record) => acc + record.amount, 0);
-  
-      const totalassessment = records
-      .filter(
-        (record) =>
-          record.recordName === "assessment" &&
-          (!selectedShop ||
-            record.shopName.toLowerCase() === selectedShop.toLowerCase())
-      )
-      .reduce((acc, record) => acc + record.amount, 0);
-  
-  
-      const totalCashHandling = records
-      .filter(
-        (record) =>
-          record.recordName === "Cash Handling Charges" &&
-          (!selectedShop ||
-            record.shopName.toLowerCase() === selectedShop.toLowerCase())
-      )
-      .reduce((acc, record) => acc + record.amount, 0);
-  
-      const totalbankdepositbybank = records
-      .filter(
-        (record) =>
-          record.recordName === "Receive Payment By Bank" &&
-          (!selectedShop ||
-            record.shopName.toLowerCase() === selectedShop.toLowerCase())
-      )
-      .reduce((acc, record) => acc + record.amount, 0);
-  
-
-    const totalRent = filteredBillHistory.reduce(
-      (acc, bill) => acc + (bill.rent || 0),
-      0
-    );
-  
-    const totalTransportation = filteredBillHistory.reduce(
-      (acc, bill) => acc + (bill.transportation || 0),
-      0
-    );
-  
-    const totalBreakageCash = filteredBillHistory.reduce(
-      (acc, bill) => acc + (bill.breakageCash || 0),
-      0
-    );
-  
-const totalCashPayments = records
-  .filter(
-    (record) =>
-      record.paymentMethod === "By Cash" &&
-      record.recordName !== "Receive Payment" &&
-      (!selectedShop ||
-        record.shopName.toLowerCase() === selectedShop.toLowerCase())
-  )
-  .reduce((acc, record) => acc + record.amount, 0);
-
-const remainingCash = Math.max(
-  0,
-  totalCash - totalPayments - totalCashPayments
-);
-
-const startingBankBalance = 956320.15;
-
-const totalBankBalanceAfterDeducting = records.reduce((acc, record) => {
-  if (record.paymentMethod === "By Bank") {
-    if (
-      record.recordName === "Receive Payment" ||
-      record.recordName === "Receive Payment By Bank"
-    ) {
-      return acc + record.amount;
-    } else {
-      return acc - record.amount;
-    }
-  }
-  return acc;
-}, startingBankBalance + totalBankBalance);
-
-
-
     return {
-      totalCash,
       totalPayments,
-      remainingCash,
-      totalUPIPayments,
       totalPurchaseStocks,
+      totalUPIPayments,
+      totalCash,
       totalBankBalance,
       totalExciseInspector,
       totalDirectPurchase,
-      totalBankBalanceAfterDeducting,
-      totalSalary,
+      totalMMGD,
+      totalAssessment,
+      totalCashHandling,
+      totalOtherDeposit,
+      totalSavingBankBalance,
+      openingBalance,
       totalRent,
       totalTransportation,
       totalBreakageCash,
-      totalPurchaseBalance,
-      totalmmgd,
-    totalassessment,
-    totalCashHandling,totalbankdepositbybank
-
-  };
+      totalSalary,
+      remainingCash,
+      other,
+    };
   };
   
-  const {
-    totalCash,
-    totalPayments,
-    remainingCash,
-    totalBankBalanceAfterDeducting,
-    totalUPIPayments,
-    totalBankBalance,
-    totalPurchaseStocks,
-    totalExciseInspector,
 
+  // Example usage
+  const {
+    totalPayments,
+    totalPurchaseStocks,
+    totalUPIPayments,
+    totalCash,
+    totalBankBalance,
+    totalExciseInspector,
     totalDirectPurchase,
-    totalSalary,
+    totalMMGD,
+    totalAssessment,
+    totalCashHandling,
+    totalOtherDeposit,
+    totalSavingBankBalance,
+    totalOpeningBalance,
     totalRent,
     totalTransportation,
     totalBreakageCash,
-    totalPurchaseBalance,
-    totalmmgd,
-    totalassessment,
-    totalCashHandling,totalbankdepositbybank
-
+    totalSalary,
+    remainingCash,
+    other,
   } = calculateTotals();
+  
 
+  
+ 
   const handleRecordClick = (recordName) => {
     setModalTitle(`Details for ${recordName}`);
     const filteredData = records.filter(
@@ -345,15 +310,18 @@ const totalBankBalanceAfterDeducting = records.reduce((acc, record) => {
         record.recordName === recordName &&
         (!selectedShop ||
           record.shopName.toLowerCase() === selectedShop.toLowerCase()) &&
-        (dateFilter !== "month" || !dateValue ||
+        (dateFilter !== "month" ||
+          !dateValue ||
           new Date(record.date).getMonth() === new Date(dateValue).getMonth())
     );
     setModalData(filteredData);
     setIsModalOpen(true);
   };
-  
 
   useEffect(() => {
+
+
+    
     const { areaData, pieData, lineData, brandData } = prepareChartData();
     setAreaData(areaData);
     setPieData(pieData);
@@ -669,11 +637,45 @@ const totalBankBalanceAfterDeducting = records.reduce((acc, record) => {
     }
   };
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
+  const filteredData = filterData();
+  const monthlyTotals = {};
+  const currentYear = new Date().getFullYear();
+
+  billHistory.forEach((bill) => {
+    const billDate = new Date(bill.pdfDate);
+    const month = billDate.getMonth();
+    const year = billDate.getFullYear();
+
+    if (year !== currentYear) return;
+
+    if (!monthlyTotals[month]) {
+      monthlyTotals[month] = 0;
+    }
+
+    monthlyTotals[month] += bill.totalPaymentReceived;
+  });
+
+  const handleShowModal = (title, data) => {
+    setModalTitle(title);
+    setModalData(data);
+    setIsModalOpen(true);
+  };
   const handleClearFilters = () => {
     setSelectedShop("");
     setDateFilter("month");
     setDateValue("");
+    setSelectedDate(null); // Reset selectedDate state if you have it
+    calculateTotals(); // Re-run calculations with cleared filters
   };
+  
 
   return (
     <div className=" p-4 h-auto bg-blue-300">
@@ -723,25 +725,27 @@ const totalBankBalanceAfterDeducting = records.reduce((acc, record) => {
         <div className="flex flex-wrap gap-8 h-auto w-100%">
           <div className="bg-gray-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center rounded-md w-52">
             <h3 className="text-xl font-semibold mb-2">Total Sales Cash</h3>
-            <p className="text-xl">₹ {totalCash.toFixed(2)}</p>
+            <p className="text-xl">₹ {totalCash}</p>
           </div>
           <div className="bg-green-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center rounded-md w-52">
             <h3 className="text-xl font-semibold mb-2">Total Bank Deposit</h3>
-            <p className="text-xl">₹ {totalPayments.toFixed(2)}</p>
+            <p className="text-xl">₹ {totalPayments}</p>
           </div>
           <div className="bg-yellow-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center rounded-md w-52">
             <h3 className="text-xl font-semibold mb-2">Total UPI Payments</h3>
-            <p className="text-xl">₹ {totalUPIPayments.toFixed(2)}</p>
+            <p className="text-xl">₹ {totalUPIPayments}</p>
           </div>
           <div className="bg-purple-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center rounded-md w-52">
             <h3 className="text-xl font-semibold mb-2">Remaining Cash</h3>
-            <p className="text-xl">₹ {remainingCash.toFixed(2)}</p>
+            <p className="text-xl">₹ {remainingCash}</p>
           </div>
           <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52 rounded-md">
-            <h3 className="text-xl font-semibold mb-2">Total Bank Balance</h3>
-            <p className="text-xl">
-              ₹ {totalBankBalanceAfterDeducting.toFixed(2)}
-            </p>
+            <h3 className="text-xl font-semibold mb-2">Current Bank</h3>
+            <p className="text-xl">₹ {totalBankBalance}</p>
+          </div>
+          <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52 rounded-md">
+            <h3 className="text-xl font-semibold mb-2">Saving Bank</h3>
+            <p className="text-xl">₹ {totalSavingBankBalance}</p>
           </div>
         </div>
       </div>
@@ -776,7 +780,7 @@ const totalBankBalanceAfterDeducting = records.reduce((acc, record) => {
               <h3 className="font-semibold text-lg mb-2">
                 Total Purchase Stock
               </h3>
-              <p className="text-xl">₹ {totalPurchaseBalance.toFixed(2)}</p>
+              <p className="text-xl">₹ {totalPurchaseStocks}</p>
             </div>
             <div
               className="bg-rose-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52 rounded-md "
@@ -785,7 +789,7 @@ const totalBankBalanceAfterDeducting = records.reduce((acc, record) => {
               <h3 className="font-semibold text-lg mb-2">
                 Total Excise Inspector
               </h3>
-              <p className="text-xl">₹ {totalExciseInspector.toFixed(2)}</p>
+              <p className="text-xl">₹ {totalExciseInspector}</p>
             </div>
             <div
               className="bg-teal-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md "
@@ -794,17 +798,15 @@ const totalBankBalanceAfterDeducting = records.reduce((acc, record) => {
               <h3 className="font-semibold text-lg mb-2">
                 Total Direct Purchase
               </h3>
-              <p className="text-xl">₹ {totalDirectPurchase.toFixed(2)}</p>
+              <p className="text-xl">₹ {totalDirectPurchase}</p>
             </div>
 
             <div
               className="bg-teal-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md "
               onClick={() => handleRecordClick("MMGD")}
             >
-              <h3 className="font-semibold text-lg mb-2">
-                Total MMGD Fees
-              </h3>
-              <p className="text-xl">₹ {totalmmgd.toFixed(2)}</p>
+              <h3 className="font-semibold text-lg mb-2">Total MMGD Fees</h3>
+              <p className="text-xl">₹ {totalMMGD}</p>
             </div>
             <div
               className="bg-teal-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md "
@@ -813,60 +815,66 @@ const totalBankBalanceAfterDeducting = records.reduce((acc, record) => {
               <h3 className="font-semibold text-lg mb-2">
                 Total Assesment Fees
               </h3>
-              <p className="text-xl">₹ {totalassessment.toFixed(2)}</p>
+              <p className="text-xl">₹ {totalAssessment}</p>
             </div>
-             <div
+            <div
               className="bg-teal-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md "
               onClick={() => handleRecordClick("Cash Handling Charges")}
             >
               <h3 className="font-semibold text-lg mb-2">
-                Total Cash HandlingCharge
+              Cash Handling 
               </h3>
-              <p className="text-xl">₹ {totalCashHandling.toFixed(2)}</p>
-            </div>
-             <div
-              className="bg-teal-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md "
-              onClick={() => handleRecordClick("Receive Payment By Bank")}
-            >
-              <h3 className="font-semibold text-lg mb-2">
-                Total Bank Deposit By Bank
-              </h3>
-              <p className="text-xl">₹ {totalbankdepositbybank.toFixed(2)}</p>
+              <p className="text-xl">₹ {totalCashHandling}</p>
             </div>
 
+            <div
+              className="bg-teal-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md "
+              onClick={() => handleRecordClick("Receive Payment By saving")}
+            >
+              <h3 className="font-semibold text-lg mb-2">
+                Saving to Current</h3>
+                <p className="text-xl">₹ </p>
+            </div>
 
             <div
               className="bg-emerald-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md "
               onClick={() => handleRecordClick("Salary")}
             >
               <h3 className="font-semibold text-lg mb-2">Total Salary</h3>
-              <p className="text-xl">₹ {totalSalary.toFixed(2)}</p>
+              <p className="text-xl">₹ {totalSalary}</p>
+            </div>
+
+            <div
+              className="bg-emerald-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md "
+              onClick={() => handleRecordClick("other")}
+            >
+              <h3 className="font-semibold text-lg mb-2">Other</h3>
+              <p className="text-xl">₹ {other}</p>
             </div>
 
             <div className="bg-indigo-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md ">
               <h3 className=" font-semibold text-lg mb-2">Total Rent </h3>
-              <p className="text-xl">₹ {totalRent.toFixed(2)}</p>
+              <p className="text-xl">₹ {totalRent}</p>
             </div>
             <div className="bg-amber-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md ">
               <h3 className=" font-semibold text-lg mb-2">
                 Total Transportation{" "}
               </h3>
-              <p className="text-xl">₹ {totalTransportation.toFixed(2)}</p>
+              <p className="text-xl">₹ {totalTransportation}</p>
             </div>
             <div className="bg-yellow-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md ">
               <h3 className=" font-semibold text-lg mb-2">
                 Total BreakageCash{" "}
               </h3>
-              <p className="text-xl">₹ {totalBreakageCash.toFixed(2)}</p>
+              <p className="text-xl">₹ {totalBreakageCash}</p>
             </div>
-       
-            <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={modalTitle}
-        data={modalData}
-      />
 
+            <Modal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              title={modalTitle}
+              data={modalData}
+            />
           </div>
         </div>
         <div
