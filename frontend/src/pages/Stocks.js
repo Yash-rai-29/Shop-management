@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
@@ -13,7 +14,7 @@ const Stocks = () => {
   const [rateDiff, setRateDiff] = useState(0);
   const [transportation, setTransportation] = useState(0);
   const [rent, setRent] = useState(0);
-  const [salary, setSalary] = useState(0);
+
   const [shop, setShop] = useState("Vamanpui");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -22,12 +23,7 @@ const Stocks = () => {
   const [totalDesiSale, setTotalDesiSale] = useState(0);
   const [totalBeerSale, setTotalBeerSale] = useState(0);
   const { user, loading: userLoading } = useContext(AuthContext);
-  const getYesterdayDate = () => {
-    const today = new Date();
-    today.setDate(today.getDate() - 1); // Subtract one day
-    return today.toISOString().substring(0, 10); // Format to 'YYYY-MM-DD'
-  };
-  const [pdfDate, setPdfDate] = useState(getYesterdayDate());
+  const [pdfDate, setPdfDate] = useState(new Date().toISOString().substring(0, 10));
 
   useEffect(() => {
     const fetchStocks = async () => {
@@ -49,7 +45,8 @@ const Stocks = () => {
         setDiscount(0);
         setCanteenCash(0);
         setBreakageCash(0);
-        setSalary(0);
+       
+
         setRent(0);
         setRateDiff(0);
         setTransportation(0);
@@ -100,7 +97,7 @@ const Stocks = () => {
   };
   const onUpdateStocks = async () => {
     setLoading(true);
-    
+
     try {
         // Prepare the payload for both stock updates and bill history
         const updatedStocks = await Promise.all(
@@ -114,8 +111,8 @@ const Stocks = () => {
                 };
             })
         );
-        console.log(updatedStocks)
-        const totalPaymentReceived = totalSale + canteenCash - breakageCash - discount - salary - upiPayment - rent + rateDiff - transportation;
+console.log(updatedStocks)
+        const totalPaymentReceived = totalSale + canteenCash - breakageCash - discount  - upiPayment - rent + rateDiff - transportation;
 
         const response = await axios.put(`${process.env.REACT_APP_API_URL}/transactions/updateStocksAndBill`, {
             updatedStocks,
@@ -127,7 +124,7 @@ const Stocks = () => {
             canteenCash,
             totalDesiSale,
             totalBeerSale,
-            salary,
+        
             shop,
             rent,
             rateDiff,
@@ -261,8 +258,7 @@ const Stocks = () => {
                   <p className="font-semibold">Breakage Cash: <span className="text-red-500">₹{breakageCash.toFixed(2)}</span></p>
                   <p className="font-semibold">Rent: <span className="text-red-500">₹{rent.toFixed(2)}</span></p>
                   <p className="font-semibold">Transportation: <span className="text-red-500">₹{transportation.toFixed(2)}</span></p>
-                  <p className="font-semibold">Salary: <span className="text-red-500">₹{salary.toFixed(2)}</span></p>
-                  <p className="font-semibold">Total Cash : ₹{(totalSale + canteenCash - breakageCash - discount - salary - upiPayment - rent + rateDiff-transportation).toFixed(2)}</p>
+                  <p className="font-semibold">Total Cash : ₹{(totalSale + canteenCash - breakageCash - discount  - upiPayment - rent + rateDiff-transportation).toFixed(2)}</p>
                   <p className="font-semibold"> Total Desi Sale: ₹{totalDesiSale.toFixed(2)}</p>
                   <p className="font-semibold"> Total Beer Sale: ₹{totalBeerSale.toFixed(2)}</p>
 
@@ -280,15 +276,7 @@ const Stocks = () => {
                     onWheel={(e) => e.preventDefault()}
                     onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
                   />
-                  <label className="block mb-2 mt-2">Salary (₹):</label>
-                  <input
-                    type="number"
-                    value={salary}
-                    onChange={(e) => setSalary(Number(e.target.value))}
-                    className="border p-2 w-full rounded"
-                    onWheel={(e) => e.preventDefault()}
-                    onKeyDown={(e) => e.key === 'ArrowUp' || e.key === 'ArrowDown' ? e.preventDefault() : null}
-                  />
+                  
                   <label className="block mb-2 mt-2">UPI Payment (₹):</label>
                   <input
                     type="number"

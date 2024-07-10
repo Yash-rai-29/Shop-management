@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaSortUp, FaSortDown } from 'react-icons/fa';
@@ -45,11 +46,9 @@ const Records = () => {
     const InputShopName = () => {
         return (
             <>
-
                 <option value="No Shop Name">Select Shop</option>
                 <option value="vamanpui">Vamanpui</option>
                 <option value="amariya">Amariya</option>
-
             </>
         )
     };
@@ -60,15 +59,15 @@ const Records = () => {
 
                 <option value="">Select Record Name</option>
                 <option value="Purchase Stock">Purchase Stock</option>
-                <option value="Receive Payment">Bank Deposit</option>
+                <option value="Receive Payment">Deposit in Current Bank</option>
                 <option value="Excise Inspector Payment">Excise Inspector Payment</option>
                 <option value="Directly Purchase Stock">Directly Purchase Stock</option>
                 <option value="MMGD">MMGD</option>
                 <option value="assessment">Assessment</option>
                 <option value="Salary">Salary</option>
                 <option value="Cash Handling Charges">Cash Handling Charges</option>
-                <option value="Receive Payment By Bank">Bank Deposit Through Second Bank</option>
-                <option value="Saving Bank Added">Saving Bank</option>
+                <option value="Receive Payment By saving">Saving to Current Transfer</option>
+                <option value="Saving Bank Added">Deposit in Saving Bank</option>
                 <option value="Other">Others</option>
             </>
         )
@@ -77,13 +76,15 @@ const Records = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        const formattedDates = new Date(date).toISOString().split('T')[0];
+        
         try {
             const response = await axios.post(`${process.env.REACT_APP_API_URL}/records`, {
                 recordName,
                 shopName: shopName|| "No Shop Selected",
                 message,
                 amount,
-                date,
+                date:formattedDates,
                 paymentMethod
             });
             console.log(response);
@@ -541,4 +542,3 @@ const Records = () => {
 }
 
 export default Records;
-

@@ -22,7 +22,10 @@ const RecordSchema = new mongoose.Schema({
         default: Date.now,
         required: true
     },
-    paymentMethod: { type: String, required: true }
+    paymentMethod: { type: String, required: true },
+    accountType: {
+        type: String // Include accountType field
+    }
 });
 
 module.exports = mongoose.model('Record', RecordSchema);

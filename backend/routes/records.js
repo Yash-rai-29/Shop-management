@@ -3,14 +3,16 @@ const router = express.Router();
 const Record = require('../models/Record');
 
 router.post('/', async (req, res) => {
-    const { recordName, shopName, message, amount, date,paymentMethod } = req.body;
+    const { recordName, shopName, message, amount, date,paymentMethod,accountType } = req.body;
     console.log('Incoming request body:', req.body); // Add this line
 
 
     try {
+        const amountNumber = parseFloat(amount);
+
         // Validate required fields
-        if (!recordName || !shopName || !message || amount === undefined || !date || !paymentMethod) {
-            return res.status(400).json({ msg: 'Please enter all fields' });
+        if (!recordName || !shopName || !message || isNaN(amountNumber) || !date || !paymentMethod) {
+            return ('Please enter all fields');
         }
 
         // Validate date format
@@ -24,7 +26,8 @@ router.post('/', async (req, res) => {
             message,
             amount,
             date: formattedDate,
-            paymentMethod
+            paymentMethod,
+            accountType
         });
 
         const record = await newRecord.save();
