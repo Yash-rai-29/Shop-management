@@ -64,9 +64,9 @@ const Login = () => {
                         {loading ? 'Logging in...' : 'Login'}
                     </button>
                 </form>
-                <div className="mt-4 text-center">
+                {/* <div className="mt-4 text-center">
                     <p className="text-sm">Don't have an account? <Link to="/register" className="text-blue-500 hover:underline">Register</Link></p>
-                </div>
+                </div> */}
             </div>
         </div>
     );
