@@ -6,28 +6,28 @@ const auth = require('../middleware/auth');
 const router = express.Router();
 
 // Register route
-router.post('/register', async (req, res) => {
-    const { name, email, password, role } = req.body;
+// router.post('/register', async (req, res) => {
+//     const { name, email, password, role } = req.body;
 
-    try {
-        let user = await User.findOne({ email });
-        if (user) {
-            return res.status(400).json({ msg: 'User already exists' });
-        }
+//     try {
+//         let user = await User.findOne({ email });
+//         if (user) {
+//             return res.status(400).json({ msg: 'User already exists' });
+//         }
 
-        user = new User({ name, email, password, role });
+//         user = new User({ name, email, password, role });
 
-        await user.save();
+//         await user.save();
 
-        const payload = { user: { id: user.id } };
-        jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' }, (err, token) => {
-            if (err) throw err;
-            res.json({ user, token });
-        });
-    } catch (err) {
-        res.status(500).json({ msg: 'Server error' });
-    }
-});
+//         const payload = { user: { id: user.id } };
+//         jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' }, (err, token) => {
+//             if (err) throw err;
+//             res.json({ user, token });
+//         });
+//     } catch (err) {
+//         res.status(500).json({ msg: 'Server error' });
+//     }
+// });
 
 // Login route
 router.post('/login', async (req, res) => {
