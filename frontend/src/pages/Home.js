@@ -655,10 +655,6 @@ const Home = () => {
     }
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
   if (error) {
     return <div>{error}</div>;
   }
@@ -702,7 +698,7 @@ const Home = () => {
         onRequestClose={() => setShowProcessingModal(false)}
         style={{
           overlay: {
-            backgroundColor: 'coral'
+            backgroundColor: 'lightblue'
           },
           content: {
             top: '50%',
