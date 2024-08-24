@@ -265,6 +265,8 @@ const Home = () => {
     const totalOtherDeposit = filterRecords("Other Deposit").reduce((acc, record) => acc + record.amount, 0);
     const totalSalary = filterRecords("Salary").reduce((acc, record) => acc + record.amount, 0);
     const other = filterRecords("Other").reduce((acc, record) => acc + record.amount, 0);
+    const totPartner1 = filterRecords("partner 1").reduce((acc, record) => acc + record.amount, 0);
+    const totPartner2 = filterRecords("partner 2").reduce((acc, record) => acc + record.amount, 0);
   
     const totalSavingBankBalance = filterRecords("Saving Bank Added").reduce((acc, record) => acc + record.amount, 0);
   
@@ -288,6 +290,8 @@ const Home = () => {
       totalSalary,
       remainingCash,
       other,
+      totPartner1,
+      totPartner2
     };
   };
   
@@ -313,6 +317,8 @@ const Home = () => {
     totalSalary,
     remainingCash,
     other,
+    totPartner1,
+    totPartner2
   } = calculateTotals();
   
 
@@ -784,7 +790,8 @@ const Home = () => {
             <h3 className="text-xl font-semibold mb-2">Current Bank</h3>
             <p className="text-xl">₹ {formatNumberToIndianLocale(totalBankBalance)}</p>
           </div>
-          <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52 rounded-md">
+          <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52 rounded-md"
+           onClick={() => handleRecordClick("Saving Bank Added")}>
             <h3 className="text-xl font-semibold mb-2">Saving Bank</h3>
             <p className="text-xl">₹ {formatNumberToIndianLocale(totalSavingBankBalance)}</p>
           </div>
@@ -908,6 +915,18 @@ const Home = () => {
                 Total BreakageCash{" "}
               </h3>
               <p className="text-xl">₹ {formatNumberToIndianLocale(totalBreakageCash)}</p>
+            </div>
+            <div className="bg-violet-300    p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md ">
+              <h3 className=" font-semibold text-lg mb-2">
+                Chandra Bhan Rai{" "}
+              </h3>
+              <p className="text-xl">₹ {formatNumberToIndianLocale(totPartner1)}</p>
+            </div>
+            <div className="bg-fuchsia-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md ">
+              <h3 className=" font-semibold text-lg mb-2">
+              Kailash Rai{" "}
+              </h3>
+              <p className="text-xl">₹ {formatNumberToIndianLocale(totPartner2)}</p>
             </div>
 
             <Modal

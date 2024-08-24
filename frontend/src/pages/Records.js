@@ -21,6 +21,7 @@ const Records = () => {
     const [showModal, setShowModal] = useState(false);
     const [importedData, setImportedData] = useState([]);
     const [showProcessingModal, setShowProcessingModal] = useState(false);
+    const [filterRecordName, setFilterRecordName] = useState('');
 
     useEffect(() => {
         fetchRecords();
@@ -69,6 +70,8 @@ const Records = () => {
                 <option value="Receive Payment By saving">Saving to Current Transfer</option>
                 <option value="Saving Bank Added">Deposit in Saving Bank</option>
                 <option value="Other">Others</option>
+                    <option value="partner 1">ChandraBhanRai</option>
+                    <option value="partner 2">Kailash Rai</option>
             </>
         )
     };
@@ -137,6 +140,11 @@ const Records = () => {
         });
     };
 
+    const filterRecordsByName = (record) => {
+        if (filterRecordName === '') return true;
+        return record.recordName === filterRecordName;
+    };
+    
 
     const filterRecordsByShop = (record) => {
         if (!shopName) return true;
@@ -371,7 +379,8 @@ const Records = () => {
                         >
                             <option value="By Cash">By Cash</option>
                             <option value="By Bank">By Bank</option>
-                        </select>
+                            <option value="By None">Payment</option>
+                        </select>   
                     </div>
                     <div className="flex items-center justify-between">
                         <button
@@ -384,42 +393,46 @@ const Records = () => {
                 </form>
             ) : (
                 <>
-                    <div className="flex justify-center mb-4">
-                        <input
-                            type="date"
-                            value={filterDate}
-                            onChange={(e) => setFilterDate(e.target.value)}
-                            className="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        />
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full bg-white">
-                            <thead>
-                                <tr>
-                                    <th className="py-2 px-4 border-b cursor-pointer" onClick={() => handleSort('date')}>
-                                        Date {sortField === 'date' && (sortOrder === 'asc' ? <FaSortUp /> : <FaSortDown />)}
-                                    </th>
-
-
-                                    <th className="py-2 px-4 border-b" onClick={() => handleSort('recordName')}>
-                                        Record Name {sortField === 'recordName' && (sortOrder === 'asc' ? <FaSortUp /> : <FaSortDown />)}
-                                    </th>
-                                    <th className="py-2 px-4 border-b" onClick={() => handleSort('shopName')}>
-                                        Shop Name {sortField === 'shopName' && (sortOrder === 'asc' ? <FaSortUp /> : <FaSortDown />)}
-                                    </th>
-                                    <th className="py-2 px-4 border-b" onClick={() => handleSort('message')}>
-                                        Message {sortField === 'message' && (sortOrder === 'asc' ? <FaSortUp /> : <FaSortDown />)}
-                                    </th>
-                                    <th className="py-2 px-4 border-b" onClick={() => handleSort('amount')}>
-                                        Amount {sortField === 'amount' && (sortOrder === 'asc' ? <FaSortUp /> : <FaSortDown />)}
-                                    </th>
-                                    <th className="py-2 px-4 border-b" onClick={() => handleSort('paymentMethod')}>
-                                        Payment Method {sortField === 'paymentMethod' && (sortOrder === 'asc' ? <FaSortUp /> : <FaSortDown />)}
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            {getSortedRecords().filter(filterRecordsByShop).map((record) => (
+                <div className="flex justify-center mb-4">
+                    <select
+                        value={filterRecordName}
+                        onChange={(e) => setFilterRecordName(e.target.value)}
+                        className="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    >
+                      <InputRecord />
+                    </select>
+                </div>
+            
+                
+                <div className="overflow-x-auto">
+                    <table className="min-w-full bg-white">
+                        <thead>
+                            <tr>
+                                <th className="py-2 px-4 border-b cursor-pointer" onClick={() => handleSort('date')}>
+                                    Date {sortField === 'date' && (sortOrder === 'asc' ? <FaSortUp /> : <FaSortDown />)}
+                                </th>
+                                <th className="py-2 px-4 border-b" onClick={() => handleSort('recordName')}>
+                                    Record Name {sortField === 'recordName' && (sortOrder === 'asc' ? <FaSortUp /> : <FaSortDown />)}
+                                </th>
+                                <th className="py-2 px-4 border-b" onClick={() => handleSort('shopName')}>
+                                    Shop Name {sortField === 'shopName' && (sortOrder === 'asc' ? <FaSortUp /> : <FaSortDown />)}
+                                </th>
+                                <th className="py-2 px-4 border-b" onClick={() => handleSort('message')}>
+                                    Message {sortField === 'message' && (sortOrder === 'asc' ? <FaSortUp /> : <FaSortDown />)}
+                                </th>
+                                <th className="py-2 px-4 border-b" onClick={() => handleSort('amount')}>
+                                    Amount {sortField === 'amount' && (sortOrder === 'asc' ? <FaSortUp /> : <FaSortDown />)}
+                                </th>
+                                <th className="py-2 px-4 border-b" onClick={() => handleSort('paymentMethod')}>
+                                    Payment Method {sortField === 'paymentMethod' && (sortOrder === 'asc' ? <FaSortUp /> : <FaSortDown />)}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {getSortedRecords()
+                                .filter(filterRecordsByShop)
+                                .filter(filterRecordsByName)
+                                .map((record) => (
                                     <tr key={record.id}>
                                         <td className="py-2 px-4 border-b">{formatDate(record.date)}</td>
                                         <td className="py-2 px-4 border-b">{record.recordName}</td>
@@ -429,10 +442,11 @@ const Records = () => {
                                         <td className="py-2 px-4 border-b">{record.paymentMethod}</td>
                                     </tr>
                                 ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </>
+                        </tbody>
+                    </table>
+                </div>
+            </>
+
             )}
             <Modal isOpen={showModal} onRequestClose={() => setShowModal(false)}>
                 <h2 className="text-2xl mb-4">Monthly Expenses</h2>
