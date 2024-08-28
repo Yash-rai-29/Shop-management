@@ -5,9 +5,9 @@ import { AuthContext } from "../context/AuthContext";
 import "tailwindcss/tailwind.css";
 import Modal from "../components/Modal"; // Import the Modal component
 
-import Modals from 'react-modal';
+import Modals from "react-modal";
 
-Modals.setAppElement('#root');
+Modals.setAppElement("#root");
 const Home = () => {
   const { user, loading: userLoading } = useContext(AuthContext);
   const [billHistory, setBillHistory] = useState([]);
@@ -29,7 +29,6 @@ const Home = () => {
   const [selectedDate, setSelectedDate] = useState(null);
 
   const [showProcessingModal, setShowProcessingModal] = useState(true);
-
 
   useEffect(() => {
     // Simulate data loading
@@ -140,27 +139,33 @@ const Home = () => {
     return filteredBillHistory;
   };
 
-
-
   let monthlyBankBalances = [];
   const startingBankBalance = 956320;
-  
+
   // Initialize with the starting balance for the first month
   const initialMonth = {
     year: selectedDate ? selectedDate.year : new Date().getFullYear(),
     month: selectedDate ? selectedDate.month : new Date().getMonth(),
     balance: startingBankBalance,
   };
-  
+
   monthlyBankBalances.push(initialMonth);
-  
+
   const calculateOpeningBalance = () => {
     const selectedMonth = selectedDate ? selectedDate.month : null;
     const selectedYear = selectedDate ? selectedDate.year : null;
-  
+
     // Ensure monthlyBankBalances array is populated up to the current selected month
-    for (let year = initialMonth.year; year <= (selectedYear || new Date().getFullYear()); year++) {
-      for (let month = (year === initialMonth.year ? initialMonth.month : 0); month < (year === selectedYear ? selectedMonth + 1 : 12); month++) {
+    for (
+      let year = initialMonth.year;
+      year <= (selectedYear || new Date().getFullYear());
+      year++
+    ) {
+      for (
+        let month = year === initialMonth.year ? initialMonth.month : 0;
+        month < (year === selectedYear ? selectedMonth + 1 : 12);
+        month++
+      ) {
         const index = year * 12 + month;
         if (!monthlyBankBalances[index]) {
           monthlyBankBalances[index] = {
@@ -171,107 +176,200 @@ const Home = () => {
         }
       }
     }
-  
+
     const getPreviousMonthBalance = (month, year) => {
       const prevMonth = month === 0 ? 11 : month - 1;
       const prevYear = month === 0 ? year - 1 : year;
       const prevIndex = prevYear * 12 + prevMonth;
-      return monthlyBankBalances[prevIndex] ? monthlyBankBalances[prevIndex].balance : startingBankBalance;
+      return monthlyBankBalances[prevIndex]
+        ? monthlyBankBalances[prevIndex].balance
+        : startingBankBalance;
     };
-  
-    const previousMonthBalance = selectedDate ? getPreviousMonthBalance(selectedMonth, selectedYear) : startingBankBalance;
-  
-    const totalBankDeduct = records.filter(
-      (record) =>
-        record.paymentMethod === "By Bank" &&
-        record.recordName !== "Receive Payment By saving" &&
-        new Date(record.date).getMonth() === selectedMonth &&
-        new Date(record.date).getFullYear() === selectedYear
-    ).reduce((acc, record) => acc + record.amount, 0);
-  
-    const totalPayments = records.filter(
-      (record) =>
-        record.recordName === "Receive Payment" &&
-        new Date(record.date).getMonth() === selectedMonth &&
-        new Date(record.date).getFullYear() === selectedYear
-    ).reduce((acc, record) => acc + record.amount, 0);
-  
-    const totalUPIPayments = billHistory.filter(
-      (bill) =>
-        new Date(bill.date).getMonth() === selectedMonth &&
-        new Date(bill.date).getFullYear() === selectedYear
-    ).reduce((acc, bill) => acc + bill.upiPayment, 0);
-  
-    const totalOpeningBalance = previousMonthBalance + totalPayments + totalUPIPayments - totalBankDeduct;
-  
-    monthlyBankBalances[selectedYear * 12 + selectedMonth].balance = totalOpeningBalance;
-  
+
+    const previousMonthBalance = selectedDate
+      ? getPreviousMonthBalance(selectedMonth, selectedYear)
+      : startingBankBalance;
+
+    const totalBankDeduct = records
+      .filter(
+        (record) =>
+          record.paymentMethod === "By Bank" &&
+          record.recordName !== "Receive Payment By saving" &&
+          new Date(record.date).getMonth() === selectedMonth &&
+          new Date(record.date).getFullYear() === selectedYear
+      )
+      .reduce((acc, record) => acc + record.amount, 0);
+
+    const totalPayments = records
+      .filter(
+        (record) =>
+          record.recordName === "Receive Payment" &&
+          new Date(record.date).getMonth() === selectedMonth &&
+          new Date(record.date).getFullYear() === selectedYear
+      )
+      .reduce((acc, record) => acc + record.amount, 0);
+
+    const totalUPIPayments = billHistory
+      .filter(
+        (bill) =>
+          new Date(bill.date).getMonth() === selectedMonth &&
+          new Date(bill.date).getFullYear() === selectedYear
+      )
+      .reduce((acc, bill) => acc + bill.upiPayment, 0);
+
+    const totalOpeningBalance =
+      previousMonthBalance + totalPayments + totalUPIPayments - totalBankDeduct;
+
+    monthlyBankBalances[selectedYear * 12 + selectedMonth].balance =
+      totalOpeningBalance;
+
     return totalOpeningBalance;
   };
-  
+
   const openingBalance = calculateOpeningBalance();
-  
+
   const calculateTotals = () => {
     const selectedMonth = selectedDate ? selectedDate.month : null;
     const selectedYear = selectedDate ? selectedDate.year : null;
-  
+
     const isInSelectedMonth = (date) => {
       const recordDate = new Date(date);
-      return (!selectedDate || (recordDate.getMonth() === selectedMonth && recordDate.getFullYear() === selectedYear));
+      return (
+        !selectedDate ||
+        (recordDate.getMonth() === selectedMonth &&
+          recordDate.getFullYear() === selectedYear)
+      );
     };
-  
+
     const filterRecords = (recordName) => {
       return records.filter((record) => {
         const matchesRecordName = record.recordName === recordName;
-        const matchesShop = !selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase();
-        return matchesRecordName && matchesShop && isInSelectedMonth(record.date);
+        const matchesShop =
+          !selectedShop ||
+          record.shopName.toLowerCase() === selectedShop.toLowerCase();
+        return (
+          matchesRecordName && matchesShop && isInSelectedMonth(record.date)
+        );
       });
     };
-  
-     const filteredBillHistory = filterData()
 
-    const totalPayments = filterRecords("Receive Payment").reduce((acc, record) => acc + record.amount, 0);
-    const totalPurchaseStocks = filterRecords("Purchase Stock").reduce((acc, record) => acc + record.amount, 0);
-    const totalCashPayments = records.filter(
-      (record) =>
-        record.paymentMethod === "By Cash" &&
-        record.recordName !== "Receive Payment" &&
-        (!selectedShop || record.shopName.toLowerCase() === selectedShop.toLowerCase()) &&
-        isInSelectedMonth(record.date)
-    ).reduce((acc, record) => acc + record.amount, 0);
-  
-    const totalUPIPayments = filteredBillHistory.reduce((acc, bill) => acc + bill.upiPayment, 0);
-    const totalCash = filteredBillHistory.reduce((acc, bill) => acc + bill.totalPaymentReceived, 0);
-    const totalRent = filteredBillHistory.reduce((acc, bill) => acc + bill.rent, 0);
-    const totalTransportation = filteredBillHistory.reduce((acc, bill) => acc + (bill.transportation || 0), 0);
-    const totalBreakageCash = filteredBillHistory.reduce((acc, bill) => acc + bill.breakageCash, 0);
-  
-    const remainingCash = Math.max(0, totalCash - totalPayments - totalCashPayments);
-  
-    const totalBankDeduct = records.filter(
-      (record) =>
-        record.paymentMethod === "By Bank" &&
-        record.recordName !== "Receive Payment By saving" &&
-        isInSelectedMonth(record.date)
-    ).reduce((acc, record) => acc + record.amount, 0);
-  
-      const totalBankBalance = (openingBalance + totalPayments + totalUPIPayments - totalBankDeduct).toFixed(2);
+    const filteredBillHistory = filterData();
 
-    const totalExciseInspector = filterRecords("Excise Inspector Payment").reduce((acc, record) => acc + record.amount, 0);
-    const totalDirectPurchase = filterRecords("Directly Purchase Stock").reduce((acc, record) => acc + record.amount, 0);
-    const totalMMGD = filterRecords("MMGD").reduce((acc, record) => acc + record.amount, 0);
-    const totalAssessment = filterRecords("assessment").reduce((acc, record) => acc + record.amount, 0);
-    const totalCashHandling = filterRecords("Cash Handling Charges").reduce((acc, record) => acc + record.amount, 0);
-    const totalOtherDeposit = filterRecords("Other Deposit").reduce((acc, record) => acc + record.amount, 0);
-    const totalSalary = filterRecords("Salary").reduce((acc, record) => acc + record.amount, 0);
-    const other = filterRecords("Other").reduce((acc, record) => acc + record.amount, 0);
-    const totPartner1 = filterRecords("partner 1").reduce((acc, record) => acc + record.amount, 0);
-    const totPartner2 = filterRecords("partner 2").reduce((acc, record) => acc + record.amount, 0);
-  
-    const totalSavingBankBalance = filterRecords("Saving Bank Added").reduce((acc, record) => acc + record.amount, 0);
-  
+    const totalPayments = filterRecords("Receive Payment")
+      .filter((record) => record.paymentMethod !== "By None")
+      .reduce((acc, record) => acc + record.amount, 0);
+
+
+      const totalReceivePaymentsByNone = filterRecords("Receive Payment")
+      .filter(record => record.paymentMethod === "By None")
+      .reduce((acc, record) => acc + record.amount, 0);
+
+    const totalPurchaseStocks = filterRecords("Purchase Stock").reduce(
+      (acc, record) => acc + record.amount,
+      0
+    );
+    const totalCashPayments = records
+      .filter(
+        (record) =>
+          record.paymentMethod === "By Cash" &&
+          record.recordName !== "Receive Payment" &&
+          (!selectedShop ||
+            record.shopName.toLowerCase() === selectedShop.toLowerCase()) &&
+          isInSelectedMonth(record.date)
+      )
+      .reduce((acc, record) => acc + record.amount, 0);
+
+    const totalUPIPayments = filteredBillHistory.reduce(
+      (acc, bill) => acc + bill.upiPayment,
+      0
+    );
+    const totalCash = filteredBillHistory.reduce(
+      (acc, bill) => acc + bill.totalPaymentReceived,
+      0
+    );
+    const totalRent = filteredBillHistory.reduce(
+      (acc, bill) => acc + bill.rent,
+      0
+    );
+    const totalTransportation = filteredBillHistory.reduce(
+      (acc, bill) => acc + (bill.transportation || 0),
+      0
+    );
+    const totalBreakageCash = filteredBillHistory.reduce(
+      (acc, bill) => acc + bill.breakageCash,
+      0
+    );
+
+    const remainingCash = Math.max(
+      0,
+      totalCash - totalPayments - totalCashPayments
+    );
+
+    const totalBankDeduct = records
+      .filter(
+        (record) =>
+          record.paymentMethod === "By Bank" &&
+          record.recordName !== "Receive Payment By saving" &&
+          isInSelectedMonth(record.date)
+      )
+      .reduce((acc, record) => acc + record.amount, 0);
+
+    const totalBankBalance = (
+      openingBalance +
+      totalPayments +totalReceivePaymentsByNone+
+      totalUPIPayments -
+      totalBankDeduct
+    ).toFixed(2);
+
+    const totalExciseInspector = filterRecords(
+      "Excise Inspector Payment"
+    ).reduce((acc, record) => acc + record.amount, 0);
+    const totalDirectPurchase = filterRecords("Directly Purchase Stock").reduce(
+      (acc, record) => acc + record.amount,
+      0
+    );
+    const totalMMGD = filterRecords("MMGD").reduce(
+      (acc, record) => acc + record.amount,
+      0
+    );
+    const totalAssessment = filterRecords("assessment").reduce(
+      (acc, record) => acc + record.amount,
+      0
+    );
+    const totalCashHandling = filterRecords("Cash Handling Charges").reduce(
+      (acc, record) => acc + record.amount,
+      0
+    );
+    const totalOtherDeposit = filterRecords("Other Deposit").reduce(
+      (acc, record) => acc + record.amount,
+      0
+    );
+    const totalSalary = filterRecords("Salary").reduce(
+      (acc, record) => acc + record.amount,
+      0
+    );
+    const other = filterRecords("Other").reduce(
+      (acc, record) => acc + record.amount,
+      0
+    );
+    const totPartner1 = filterRecords("partner 1").reduce(
+      (acc, record) => acc + record.amount,
+      0
+    );
+    const totPartner2 = filterRecords("partner 2").reduce(
+      (acc, record) => acc + record.amount,
+      0
+    );
+
+    const totalSavingBankBalance = filterRecords("Saving Bank Added").reduce(
+      (acc, record) => acc + record.amount,
+      0
+    );
+
     return {
       totalPayments,
+      remainingCash,
+
       totalPurchaseStocks,
       totalUPIPayments,
       totalCash,
@@ -288,13 +386,12 @@ const Home = () => {
       totalTransportation,
       totalBreakageCash,
       totalSalary,
-      remainingCash,
+
       other,
       totPartner1,
-      totPartner2
+      totPartner2,
     };
   };
-  
 
   // Example usage
   const {
@@ -318,15 +415,13 @@ const Home = () => {
     remainingCash,
     other,
     totPartner1,
-    totPartner2
+    totPartner2,
   } = calculateTotals();
-  
 
-    const formatNumberToIndianLocale = (number) => {
-    return new Intl.NumberFormat('en-IN').format(number);
+  const formatNumberToIndianLocale = (number) => {
+    return new Intl.NumberFormat("en-IN").format(number);
   };
-  
- 
+
   const handleRecordClick = (recordName) => {
     setModalTitle(`Details for ${recordName}`);
     const filteredData = records.filter(
@@ -343,9 +438,6 @@ const Home = () => {
   };
 
   useEffect(() => {
-
-
-    
     const { areaData, pieData, lineData, brandData } = prepareChartData();
     setAreaData(areaData);
     setPieData(pieData);
@@ -695,29 +787,28 @@ const Home = () => {
     setSelectedDate(null); // Reset selectedDate state if you have it
     calculateTotals(); // Re-run calculations with cleared filters
   };
-  
 
   return (
     <div className=" p-4 h-auto bg-blue-300">
-        <Modals
+      <Modals
         isOpen={showProcessingModal}
         onRequestClose={() => setShowProcessingModal(false)}
         style={{
           overlay: {
-            backgroundColor: 'lightblue'
+            backgroundColor: "lightblue",
           },
           content: {
-            top: '50%',
-            left: '50%',
-            right: 'auto',
-            bottom: 'auto',
-            marginRight: '-50%',
-            transform: 'translate(-50%, -50%)',
-            padding: '20px',
-            borderRadius: '10px',
-            textAlign: 'center',
-            width: '300px'
-          }
+            top: "50%",
+            left: "50%",
+            right: "auto",
+            bottom: "auto",
+            marginRight: "-50%",
+            transform: "translate(-50%, -50%)",
+            padding: "20px",
+            borderRadius: "10px",
+            textAlign: "center",
+            width: "300px",
+          },
         }}
       >
         <h2 className="text-2xl mb-4">Processing...</h2>
@@ -776,24 +867,36 @@ const Home = () => {
           </div>
           <div className="bg-green-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center rounded-md w-52">
             <h3 className="text-xl font-semibold mb-2">Total Bank Deposit</h3>
-            <p className="text-xl">₹ {formatNumberToIndianLocale(totalPayments)}</p>
+            <p className="text-xl">
+              ₹ {formatNumberToIndianLocale(totalPayments)}
+            </p>
           </div>
           <div className="bg-yellow-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center rounded-md w-52">
             <h3 className="text-xl font-semibold mb-2">Total UPI Payments</h3>
-            <p className="text-xl">₹ {formatNumberToIndianLocale(totalUPIPayments)}</p>
+            <p className="text-xl">
+              ₹ {formatNumberToIndianLocale(totalUPIPayments)}
+            </p>
           </div>
           <div className="bg-purple-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center rounded-md w-52">
             <h3 className="text-xl font-semibold mb-2">Remaining Cash</h3>
-            <p className="text-xl">₹ {formatNumberToIndianLocale(remainingCash)}</p>
+            <p className="text-xl">
+              ₹ {formatNumberToIndianLocale(remainingCash)}
+            </p>
           </div>
           <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52 rounded-md">
             <h3 className="text-xl font-semibold mb-2">Current Bank</h3>
-            <p className="text-xl">₹ {formatNumberToIndianLocale(totalBankBalance)}</p>
+            <p className="text-xl">
+              ₹ {formatNumberToIndianLocale(totalBankBalance)}
+            </p>
           </div>
-          <div className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52 rounded-md"
-           onClick={() => handleRecordClick("Saving Bank Added")}>
+          <div
+            className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52 rounded-md"
+            onClick={() => handleRecordClick("Saving Bank Added")}
+          >
             <h3 className="text-xl font-semibold mb-2">Saving Bank</h3>
-            <p className="text-xl">₹ {formatNumberToIndianLocale(totalSavingBankBalance)}</p>
+            <p className="text-xl">
+              ₹ {formatNumberToIndianLocale(totalSavingBankBalance)}
+            </p>
           </div>
         </div>
       </div>
@@ -828,7 +931,9 @@ const Home = () => {
               <h3 className="font-semibold text-lg mb-2">
                 Total Purchase Stock
               </h3>
-              <p className="text-xl">₹ {formatNumberToIndianLocale(totalPurchaseStocks)}</p>
+              <p className="text-xl">
+                ₹ {formatNumberToIndianLocale(totalPurchaseStocks)}
+              </p>
             </div>
             <div
               className="bg-rose-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52 rounded-md "
@@ -837,7 +942,9 @@ const Home = () => {
               <h3 className="font-semibold text-lg mb-2">
                 Total Excise Inspector
               </h3>
-              <p className="text-xl">₹ {formatNumberToIndianLocale(totalExciseInspector)}</p>
+              <p className="text-xl">
+                ₹ {formatNumberToIndianLocale(totalExciseInspector)}
+              </p>
             </div>
             <div
               className="bg-teal-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md "
@@ -846,7 +953,9 @@ const Home = () => {
               <h3 className="font-semibold text-lg mb-2">
                 Total Direct Purchase
               </h3>
-              <p className="text-xl">₹ {formatNumberToIndianLocale(totalDirectPurchase)}</p>
+              <p className="text-xl">
+                ₹ {formatNumberToIndianLocale(totalDirectPurchase)}
+              </p>
             </div>
 
             <div
@@ -854,7 +963,9 @@ const Home = () => {
               onClick={() => handleRecordClick("MMGD")}
             >
               <h3 className="font-semibold text-lg mb-2">Total MMGD Fees</h3>
-              <p className="text-xl">₹ {formatNumberToIndianLocale(totalMMGD)}</p>
+              <p className="text-xl">
+                ₹ {formatNumberToIndianLocale(totalMMGD)}
+              </p>
             </div>
             <div
               className="bg-teal-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md "
@@ -863,25 +974,26 @@ const Home = () => {
               <h3 className="font-semibold text-lg mb-2">
                 Total Assesment Fees
               </h3>
-              <p className="text-xl">₹ {formatNumberToIndianLocale(totalAssessment)}</p>
+              <p className="text-xl">
+                ₹ {formatNumberToIndianLocale(totalAssessment)}
+              </p>
             </div>
             <div
               className="bg-teal-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md "
               onClick={() => handleRecordClick("Cash Handling Charges")}
             >
-              <h3 className="font-semibold text-lg mb-2">
-              Cash Handling 
-              </h3>
-              <p className="text-xl">₹ {formatNumberToIndianLocale(totalCashHandling)}</p>
+              <h3 className="font-semibold text-lg mb-2">Cash Handling</h3>
+              <p className="text-xl">
+                ₹ {formatNumberToIndianLocale(totalCashHandling)}
+              </p>
             </div>
 
             <div
               className="bg-teal-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md "
               onClick={() => handleRecordClick("Receive Payment By saving")}
             >
-              <h3 className="font-semibold text-lg mb-2">
-                Saving to Current</h3>
-                <p className="text-xl">₹ </p>
+              <h3 className="font-semibold text-lg mb-2">Saving to Current</h3>
+              <p className="text-xl">₹ </p>
             </div>
 
             <div
@@ -889,7 +1001,9 @@ const Home = () => {
               onClick={() => handleRecordClick("Salary")}
             >
               <h3 className="font-semibold text-lg mb-2">Total Salary</h3>
-              <p className="text-xl">₹ {formatNumberToIndianLocale(totalSalary)}</p>
+              <p className="text-xl">
+                ₹ {formatNumberToIndianLocale(totalSalary)}
+              </p>
             </div>
 
             <div
@@ -902,31 +1016,37 @@ const Home = () => {
 
             <div className="bg-indigo-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md ">
               <h3 className=" font-semibold text-lg mb-2">Total Rent </h3>
-              <p className="text-xl">₹ {formatNumberToIndianLocale(totalRent)}</p>
+              <p className="text-xl">
+                ₹ {formatNumberToIndianLocale(totalRent)}
+              </p>
             </div>
             <div className="bg-amber-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md ">
               <h3 className=" font-semibold text-lg mb-2">
                 Total Transportation{" "}
               </h3>
-              <p className="text-xl">₹ {formatNumberToIndianLocale(totalTransportation)}</p>
+              <p className="text-xl">
+                ₹ {formatNumberToIndianLocale(totalTransportation)}
+              </p>
             </div>
             <div className="bg-yellow-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md ">
               <h3 className=" font-semibold text-lg mb-2">
                 Total BreakageCash{" "}
               </h3>
-              <p className="text-xl">₹ {formatNumberToIndianLocale(totalBreakageCash)}</p>
+              <p className="text-xl">
+                ₹ {formatNumberToIndianLocale(totalBreakageCash)}
+              </p>
             </div>
             <div className="bg-violet-300    p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md ">
-              <h3 className=" font-semibold text-lg mb-2">
-                Chandra Bhan Rai{" "}
-              </h3>
-              <p className="text-xl">₹ {formatNumberToIndianLocale(totPartner1)}</p>
+              <h3 className=" font-semibold text-lg mb-2">Chandra Bhan Rai </h3>
+              <p className="text-xl">
+                ₹ {formatNumberToIndianLocale(totPartner1)}
+              </p>
             </div>
             <div className="bg-fuchsia-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-centerr w-52 rounded-md ">
-              <h3 className=" font-semibold text-lg mb-2">
-              Kailash Rai{" "}
-              </h3>
-              <p className="text-xl">₹ {formatNumberToIndianLocale(totPartner2)}</p>
+              <h3 className=" font-semibold text-lg mb-2">Kailash Rai </h3>
+              <p className="text-xl">
+                ₹ {formatNumberToIndianLocale(totPartner2)}
+              </p>
             </div>
 
             <Modal
