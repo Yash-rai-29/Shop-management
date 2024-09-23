@@ -68,7 +68,8 @@ const Records = () => {
                 <option value="Salary">Salary</option>
                 <option value="Cash Handling Charges">Cash Handling Charges</option>
                 <option value="Receive Payment By saving">Saving to Current Transfer</option>
-                <option value="Saving Bank Added">Deposit in Saving Bank</option>
+                <option value="Saving Bank Added">Deposit in Nana</option>
+                <option value="Saving Bank Added2">Deposit in Pooja</option>
                 <option value="Other">Others</option>
                     <option value="partner 1">ChandraBhanRai</option>
                     <option value="partner 2">Kailash Rai</option>

@@ -365,6 +365,10 @@ const Home = () => {
       (acc, record) => acc + record.amount,
       0
     );
+    const totalSavingBank2Balance = filterRecords("Saving Bank Added2").reduce(
+      (acc, record) => acc + record.amount,
+      0
+    );
 
     return {
       totalPayments,
@@ -386,7 +390,7 @@ const Home = () => {
       totalTransportation,
       totalBreakageCash,
       totalSalary,
-
+      totalSavingBank2Balance,
       other,
       totPartner1,
       totPartner2,
@@ -412,6 +416,7 @@ const Home = () => {
     totalTransportation,
     totalBreakageCash,
     totalSalary,
+    totalSavingBank2Balance,
     remainingCash,
     other,
     totPartner1,
@@ -893,9 +898,18 @@ const Home = () => {
             className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52 rounded-md"
             onClick={() => handleRecordClick("Saving Bank Added")}
           >
-            <h3 className="text-xl font-semibold mb-2">Saving Bank</h3>
+            <h3 className="text-xl font-semibold mb-2">Nana Saving Bank</h3>
             <p className="text-xl">
               ₹ {formatNumberToIndianLocale(totalSavingBankBalance)}
+            </p>
+          </div>
+          <div
+            className="bg-red-200 p-4 shadow-md hover:shadow-lg transition-shadow duration-300 h-28 flex-col justify-center items-center w-52 rounded-md"
+            onClick={() => handleRecordClick("Saving Bank Added2")}
+          >
+            <h3 className="text-xl font-semibold mb-2">Pooja Saving Bank</h3>
+            <p className="text-xl">
+              ₹ {formatNumberToIndianLocale(totalSavingBank2Balance)}
             </p>
           </div>
         </div>
